@@ -328,9 +328,7 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 
 done:
 	kfree(tmphlprbuf);
-	if (fw_helper)
-		release_firmware(fw_helper);
-
+	release_firmware(fw_helper);
 	return ret;
 }
 
@@ -473,10 +471,7 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 
 done:
 	kfree(tmpfwbuf);
-
-	if (fw_firmware)
-		release_firmware(fw_firmware);
-
+	release_firmware(fw_firmware);
 	return ret;
 }
 
