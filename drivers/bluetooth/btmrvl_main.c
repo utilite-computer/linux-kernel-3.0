@@ -230,7 +230,7 @@ int btmrvl_enable_ps(struct btmrvl_private *priv)
 }
 EXPORT_SYMBOL_GPL(btmrvl_enable_ps);
 
-static int btmrvl_enable_hs(struct btmrvl_private *priv)
+int btmrvl_enable_hs(struct btmrvl_private *priv)
 {
 	struct sk_buff *skb;
 	struct btmrvl_cmd *cmd;
@@ -266,6 +266,7 @@ static int btmrvl_enable_hs(struct btmrvl_private *priv)
 
 	return ret;
 }
+EXPORT_SYMBOL_GPL(btmrvl_enable_hs);
 
 int btmrvl_prepare_command(struct btmrvl_private *priv)
 {
