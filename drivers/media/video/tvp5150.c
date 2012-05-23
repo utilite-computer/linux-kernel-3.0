@@ -149,24 +149,39 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
 	return &container_of(ctrl->handler, struct tvp5150, hdl)->sd;
 }
 
-static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
+static int tvp5150_read_werr(struct i2c_client *c, unsigned char addr)
 {
-	struct i2c_client *c = v4l2_get_subdevdata(sd);
 	unsigned char buffer[1];
-	int rc;
+	int err;
 
 	buffer[0] = addr;
-	if (1 != (rc = i2c_master_send(c, buffer, 1)))
-		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d (should be 1)\n", rc);
+	err = i2c_master_send(c, buffer, 1);
+	if (err != 1)
+		return -EIO;
 
 	msleep(10);
 
-	if (1 != (rc = i2c_master_recv(c, buffer, 1)))
-		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d (should be 1)\n", rc);
+	err = i2c_master_recv(c, buffer, 1);
+	if (err != 1)
+		return -EIO;
 
-	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, buffer[0]);
+	return buffer[0];
+}
 
-	return (buffer[0]);
+static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
+{
+	struct i2c_client *c = v4l2_get_subdevdata(sd);
+	int ret;
+
+	ret = tvp5150_read_werr(c, addr);
+	if (ret == -EIO) {
+		v4l2_err(sd, "i2c i/o error\n");
+		return -1;
+	}
+
+	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, ret);
+
+	return ret;
 }
 
 static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
@@ -1707,17 +1722,23 @@ static int tvp5150_probe(struct i2c_client *c,
 	     I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
 		return -EIO;
 
+	msb_id = tvp5150_read_werr(c, TVP5150_MSB_DEV_ID);
+	if (msb_id == -EIO)
+		goto enodev;
+
+	lsb_id = tvp5150_read_werr(c, TVP5150_LSB_DEV_ID);
+	if (lsb_id == -EIO)
+		goto enodev;
+
 	core = kzalloc(sizeof(struct tvp5150), GFP_KERNEL);
 	if (!core) {
 		return -ENOMEM;
 	}
 	sd = &core->sd;
 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-	v4l_info(c, "chip found @ 0x%02x (%s)\n",
-		 c->addr << 1, c->adapter->name);
+	v4l_info(c, "chip found at address 0x%02x (%s)\n",
+		 c->addr, c->adapter->name);
 
-	msb_id = tvp5150_read(sd, TVP5150_MSB_DEV_ID);
-	lsb_id = tvp5150_read(sd, TVP5150_LSB_DEV_ID);
 	msb_rom = tvp5150_read(sd, TVP5150_ROM_MAJOR_VER);
 	lsb_rom = tvp5150_read(sd, TVP5150_ROM_MINOR_VER);
 
@@ -1730,7 +1751,7 @@ static int tvp5150_probe(struct i2c_client *c,
 		if (msb_rom == 3 || lsb_rom == 0x21) { /* Is TVP5150A */
 			v4l2_info(sd, "tvp%02x%02xa detected.\n", msb_id, lsb_id);
 		} else {
-			v4l2_info(sd, "*** unknown tvp%02x%02x chip detected.\n",
+			v4l2_info(sd, "*** tvp%02x%02x chip detected.\n",
 					msb_id, lsb_id);
 			v4l2_info(sd, "*** Rom ver is %d.%d\n", msb_rom, lsb_rom);
 		}
@@ -1764,6 +1785,10 @@ static int tvp5150_probe(struct i2c_client *c,
 
 	tvp5150_probe_v4l(c,id,core);
 	return 0;
+
+enodev:
+	v4l2_info(c, "failed to read device ID\n");
+	return -ENODEV;
 }
 
 static int tvp5150_remove(struct i2c_client *c)
