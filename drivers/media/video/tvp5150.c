@@ -1715,7 +1715,7 @@ static int tvp5150_probe(struct i2c_client *c,
 {
 	struct tvp5150 *core;
 	struct v4l2_subdev *sd;
-	u8 msb_id, lsb_id, msb_rom, lsb_rom;
+	int msb_id, lsb_id, msb_rom, lsb_rom;
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(c->adapter,
