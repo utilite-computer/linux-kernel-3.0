@@ -922,6 +922,9 @@ static void __inline__ fec_get_mac(struct net_device *ndev)
 		iap = &tmpaddr[0];
 	}
 
+	if (!is_valid_ether_addr(iap))
+		random_ether_addr(iap);
+
 	memcpy(ndev->dev_addr, iap, ETH_ALEN);
 
 	/* Adjust MAC if using macaddr */

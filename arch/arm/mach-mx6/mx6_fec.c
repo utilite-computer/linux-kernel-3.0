@@ -46,8 +46,6 @@ static int fec_get_mac_addr(unsigned char *mac)
 void __init imx6_init_fec(struct fec_platform_data fec_data)
 {
 	fec_get_mac_addr(fec_data.mac);
-	if (!is_valid_ether_addr(fec_data.mac))
-		random_ether_addr(fec_data.mac);
 
 	if (cpu_is_mx6sl())
 		imx6sl_add_fec(&fec_data);
