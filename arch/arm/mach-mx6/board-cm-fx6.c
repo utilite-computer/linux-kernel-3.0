@@ -76,6 +76,7 @@
 #include "board-cm-fx6-dl.h"
 
 /* GPIO PIN, sort by PORT/BIT */
+#define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
 #define MX6_ARM2_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
 #define MX6_ARM2_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
@@ -1024,6 +1025,37 @@ static int __init early_disable_mipi_dsi(char *p)
 }
 early_param("disable_mipi_dsi", early_disable_mipi_dsi);
 
+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+static struct gpio_led cm_fx6_leds[] = {
+	[0] = {
+		.gpio			= CM_FX6_GREEN_LED,
+		.name			= "cm_fx6:green",
+		.default_trigger	= "heartbeat",
+		.active_low		= 0,
+	},
+};
+
+static struct gpio_led_platform_data cm_fx6_led_pdata = {
+	.num_leds	= ARRAY_SIZE(cm_fx6_leds),
+	.leds		= cm_fx6_leds,
+};
+
+static struct platform_device cm_fx6_led_device = {
+	.name	= "leds-gpio",
+	.id	= -1,
+	.dev	= {
+		.platform_data = &cm_fx6_led_pdata,
+	},
+};
+
+static void __init cm_fx6_init_led(void)
+{
+	platform_device_register(&cm_fx6_led_device);
+}
+#else
+static inline void cm_fx6_init_led(void) {}
+#endif
+
 /*
  * Board specific initialization.
  */
@@ -1150,6 +1182,8 @@ static void __init cm_fx6_init(void)
 		i2c_register_board_info(2, mxc_i2c2_board_info,
 				ARRAY_SIZE(mxc_i2c2_board_info));
 	}
+
+	cm_fx6_init_led();
 
 	/* SPI */
 	imx6q_add_ecspi(0, &mx6_arm2_spi_data);

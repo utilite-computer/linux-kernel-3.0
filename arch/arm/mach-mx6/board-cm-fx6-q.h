@@ -23,7 +23,8 @@ static iomux_v3_cfg_t mx6q_arm2_pads[] = {
 	/* UART4 for debug */
 	MX6Q_PAD_KEY_COL0__UART4_TXD,
 	MX6Q_PAD_KEY_ROW0__UART4_RXD,
-
+	/* Green LED */
+	MX6Q_PAD_EIM_EB3__GPIO_2_31,
 	/* ENET */
 	MX6Q_PAD_ENET_MDIO__ENET_MDIO,
 	MX6Q_PAD_ENET_MDC__ENET_MDC,

@@ -23,7 +23,8 @@ static iomux_v3_cfg_t mx6dl_arm2_pads[] = {
 	/* UART4 for debug */
 	MX6DL_PAD_KEY_COL0__UART4_TXD,
 	MX6DL_PAD_KEY_ROW0__UART4_RXD,
-
+	/* Green LED */
+	MX6DL_PAD_EIM_EB3__GPIO_2_31,
 	/* ENET */
 	MX6DL_PAD_ENET_MDIO__ENET_MDIO,
 	MX6DL_PAD_KEY_COL2__ENET_MDC,
