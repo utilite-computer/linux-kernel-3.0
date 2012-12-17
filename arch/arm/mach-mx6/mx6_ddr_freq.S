@@ -550,7 +550,7 @@ poll_dvfs_clear_1:
 	cmp     r0, #0x2000000
 	beq     poll_dvfs_clear_1
 
-	/* if DLL was previously on, continue DLL off routine
+	/* if DLL was previously on, continue DLL off routine */
 	cmp    	r9, #1
 	beq 	continue_dll_off_3
 
