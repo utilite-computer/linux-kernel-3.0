@@ -72,6 +72,13 @@ config LCD_TDO24M
 	  If you have a Toppoly TDO24M/TDO35S series LCD panel, say y here to
 	  include the support for it.
 
+config LCD_SCF0403
+	tristate "DataImage SCF0403852GGU04 LCD Panel support"
+	depends on SPI_MASTER
+	help
+	  If you have a DataImage SCF0403852GGU04 LCD panel, say y here to
+	  include support for it.
+
 config LCD_VGG2432A4
 	tristate "VGG2432A4 LCM device support"
 	depends on SPI_MASTER
