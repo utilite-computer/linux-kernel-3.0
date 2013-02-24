@@ -90,6 +90,10 @@ static iomux_v3_cfg_t mx6q_arm2_pads[] = {
 	MX6Q_PAD_KEY_COL3__I2C2_SCL,
 	MX6Q_PAD_KEY_ROW3__I2C2_SDA,
 
+	/* I2C3 */
+	MX6Q_PAD_GPIO_3__I2C3_SCL,
+	MX6Q_PAD_GPIO_6__I2C3_SDA,
+
 	/* DISPLAY */
 	MX6Q_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK,
 	MX6Q_PAD_DI0_PIN15__IPU1_DI0_PIN15,
@@ -134,11 +138,6 @@ static iomux_v3_cfg_t mx6q_arm2_pads[] = {
 
 	/* USBOTG ID pin */
 	MX6Q_PAD_GPIO_1__USBOTG_ID,
-};
-
-static iomux_v3_cfg_t mx6q_arm2_i2c3_pads[] = {
-	MX6Q_PAD_GPIO_3__I2C3_SCL,
-	MX6Q_PAD_GPIO_6__I2C3_SDA,
 };
 
 static iomux_v3_cfg_t mx6q_arm2_spdif_pads[] = {

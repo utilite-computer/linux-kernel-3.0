@@ -799,12 +799,10 @@ static void __init cm_fx6_init(void)
 	iomux_v3_cfg_t *common_pads = NULL;
 	iomux_v3_cfg_t *spdif_pads = NULL;
 	iomux_v3_cfg_t *flexcan_pads = NULL;
-	iomux_v3_cfg_t *i2c3_pads = NULL;
 
 	int common_pads_cnt;
 	int spdif_pads_cnt;
 	int flexcan_pads_cnt;
-	int i2c3_pads_cnt;
 
 
 	/*
@@ -816,41 +814,32 @@ static void __init cm_fx6_init(void)
 		common_pads = mx6q_arm2_pads;
 		spdif_pads = mx6q_arm2_spdif_pads;
 		flexcan_pads = mx6q_arm2_can_pads;
-		i2c3_pads = mx6q_arm2_i2c3_pads;
 
 		common_pads_cnt = ARRAY_SIZE(mx6q_arm2_pads);
 		spdif_pads_cnt =  ARRAY_SIZE(mx6q_arm2_spdif_pads);
 		flexcan_pads_cnt = ARRAY_SIZE(mx6q_arm2_can_pads);
-		i2c3_pads_cnt = ARRAY_SIZE(mx6q_arm2_i2c3_pads);
 	} else if (cpu_is_mx6dl()) {
 		common_pads = mx6dl_arm2_pads;
 		spdif_pads = mx6dl_arm2_spdif_pads;
 		flexcan_pads = mx6dl_arm2_can_pads;
-		i2c3_pads = mx6dl_arm2_i2c3_pads;
 
 		common_pads_cnt = ARRAY_SIZE(mx6dl_arm2_pads);
 		spdif_pads_cnt =  ARRAY_SIZE(mx6dl_arm2_spdif_pads);
 		flexcan_pads_cnt = ARRAY_SIZE(mx6dl_arm2_can_pads);
-		i2c3_pads_cnt = ARRAY_SIZE(mx6dl_arm2_i2c3_pads);
 	}
 
 	BUG_ON(!common_pads);
 	mxc_iomux_v3_setup_multiple_pads(common_pads, common_pads_cnt);
 
-	/*
-	 * IEEE-1588 ts_clk, S/PDIF in and i2c3 are mutually exclusive
-	 * because all of them use GPIO_16.
-	 * S/PDIF out and can1 stby are mutually exclusive because both
-	 * use GPIO_17.
-	 */
 	if (spdif_en) {
 		BUG_ON(!spdif_pads);
 		mxc_iomux_v3_setup_multiple_pads(spdif_pads, spdif_pads_cnt);
-	} else {
-		BUG_ON(!i2c3_pads);
-		mxc_iomux_v3_setup_multiple_pads(i2c3_pads, i2c3_pads_cnt);
 	}
 
+	/*
+	 * S/PDIF out and can1 stby are mutually exclusive because both
+	 * use GPIO_17.
+	 */
 	if (!spdif_en && flexcan_en) {
 		BUG_ON(!flexcan_pads);
 		mxc_iomux_v3_setup_multiple_pads(flexcan_pads,
