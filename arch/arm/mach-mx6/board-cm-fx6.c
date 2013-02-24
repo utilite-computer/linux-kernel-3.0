@@ -29,6 +29,7 @@
 #include <linux/spi/flash.h>
 #include <linux/i2c.h>
 #include <linux/i2c/pca953x.h>
+#include <linux/i2c/at24.h>
 #include <linux/ata.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/map.h>
@@ -426,8 +427,15 @@ static struct i2c_board_info mxc_i2c1_board_info[] __initdata = {
 	},
 };
 
-static struct i2c_board_info mxc_i2c2_board_info[] __initdata = {
+static struct at24_platform_data cm_fx6_eeprom_pdata = {
+        .byte_len       = 256,
+        .page_size      = 16,
+};
+
+static struct i2c_board_info cm_fx6_i2c2_board_info[] __initdata = {
 	{
+		I2C_BOARD_INFO("at24", 0x50),
+		.platform_data = &cm_fx6_eeprom_pdata,
 	},
 };
 
@@ -1013,8 +1021,8 @@ static void __init cm_fx6_init(void)
 		if (disable_mipi_dsi)
 			mx6_arm2_i2c2_data.bitrate = 100000;
 		imx6q_add_imx_i2c(2, &mx6_arm2_i2c2_data);
-		i2c_register_board_info(2, mxc_i2c2_board_info,
-				ARRAY_SIZE(mxc_i2c2_board_info));
+		i2c_register_board_info(2, cm_fx6_i2c2_board_info,
+				ARRAY_SIZE(cm_fx6_i2c2_board_info));
 	}
 
 	cm_fx6_init_led();
