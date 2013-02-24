@@ -42,10 +42,6 @@ static iomux_v3_cfg_t mx6dl_arm2_pads[] = {
 	MX6DL_PAD_RGMII_RD3__ENET_RGMII_RD3,
 	MX6DL_PAD_RGMII_RX_CTL__ENET_RGMII_RX_CTL,
 
-	/* MCLK for csi0 */
-	MX6DL_PAD_GPIO_0__CCM_CLKO,
-	MX6DL_PAD_GPIO_3__CCM_CLKO2,
-
 	/* SD1 */
 	MX6DL_PAD_SD1_CLK__USDHC1_CLK,
 	MX6DL_PAD_SD1_CMD__USDHC1_CMD,
@@ -146,17 +142,11 @@ static iomux_v3_cfg_t mx6dl_arm2_pads[] = {
 
 	/* USBOTG ID pin */
 	MX6DL_PAD_GPIO_1__USBOTG_ID,
-
-	/* MLB150 */
-	MX6DL_PAD_GPIO_3__MLB_MLBCLK,
-	MX6DL_PAD_GPIO_6__MLB_MLBSIG,
-	MX6DL_PAD_GPIO_2__MLB_MLBDAT,
-
 };
 
 static iomux_v3_cfg_t mx6dl_arm2_i2c3_pads[] = {
-	MX6DL_PAD_GPIO_5__I2C3_SCL,
-	MX6DL_PAD_GPIO_16__I2C3_SDA,
+	MX6DL_PAD_GPIO_3__I2C3_SCL,
+	MX6DL_PAD_GPIO_6__I2C3_SDA,
 };
 
 static iomux_v3_cfg_t mx6dl_arm2_spdif_pads[] = {
