@@ -18,7 +18,7 @@
 
 #include <mach/iomux-mx6dl.h>
 
-static iomux_v3_cfg_t mx6dl_arm2_pads[] = {
+static iomux_v3_cfg_t cm_fx6_dl_pads[] = {
 
 	/* UART4 for debug */
 	MX6DL_PAD_KEY_COL0__UART4_TXD,
@@ -140,13 +140,13 @@ static iomux_v3_cfg_t mx6dl_arm2_pads[] = {
 	MX6DL_PAD_GPIO_1__USBOTG_ID,
 };
 
-static iomux_v3_cfg_t mx6dl_arm2_spdif_pads[] = {
+static iomux_v3_cfg_t cm_fx6_dl_spdif_pads[] = {
 	/* SPDIF */
 	MX6DL_PAD_GPIO_16__SPDIF_IN1,
 	MX6DL_PAD_GPIO_17__SPDIF_OUT1,
 };
 
-static iomux_v3_cfg_t mx6dl_arm2_can_pads[] = {
+static iomux_v3_cfg_t cm_fx6_dl_can_pads[] = {
 	/* CAN1 */
 	MX6DL_PAD_GPIO_7__CAN1_TXCAN,
 	MX6DL_PAD_KEY_ROW2__CAN1_RXCAN,
@@ -159,8 +159,8 @@ static iomux_v3_cfg_t mx6dl_arm2_can_pads[] = {
 	MX6DL_PAD_CSI0_DAT6__GPIO_5_24,	/* CAN2 EN */
 };
 
-#define MX6DL_USDHC_PAD_SETTING(id, speed)	\
-mx6dl_sd##id##_##speed##mhz[] = {		\
+#define CM_FX6_DL_USDHC_PAD_SETTING(id, speed)	\
+cm_fx6_dl_sd##id##_##speed##mhz[] = {		\
 	MX6DL_PAD_SD##id##_CLK__USDHC##id##_CLK_##speed##MHZ,	\
 	MX6DL_PAD_SD##id##_CMD__USDHC##id##_CMD_##speed##MHZ,	\
 	MX6DL_PAD_SD##id##_DAT0__USDHC##id##_DAT0_##speed##MHZ,	\
@@ -173,12 +173,12 @@ mx6dl_sd##id##_##speed##mhz[] = {		\
 	MX6DL_PAD_SD##id##_DAT7__USDHC##id##_DAT7_##speed##MHZ,	\
 }
 
-static iomux_v3_cfg_t MX6DL_USDHC_PAD_SETTING(3, 50);
-static iomux_v3_cfg_t MX6DL_USDHC_PAD_SETTING(3, 100);
-static iomux_v3_cfg_t MX6DL_USDHC_PAD_SETTING(3, 200);
+static iomux_v3_cfg_t CM_FX6_DL_USDHC_PAD_SETTING(3, 50);
+static iomux_v3_cfg_t CM_FX6_DL_USDHC_PAD_SETTING(3, 100);
+static iomux_v3_cfg_t CM_FX6_DL_USDHC_PAD_SETTING(3, 200);
 
 /* The GPMI is conflicted with SD3, so init this in the driver. */
-static iomux_v3_cfg_t mx6dl_gpmi_nand[] = {
+static iomux_v3_cfg_t cm_fx6_dl_gpmi_nand[] = {
 	MX6DL_PAD_NANDF_CLE__RAWNAND_CLE,
 	MX6DL_PAD_NANDF_ALE__RAWNAND_ALE,
 	MX6DL_PAD_NANDF_CS0__RAWNAND_CE0N,
@@ -200,12 +200,12 @@ static iomux_v3_cfg_t mx6dl_gpmi_nand[] = {
 	MX6DL_PAD_NANDF_WP_B__RAWNAND_RESETN,
 };
 
-static iomux_v3_cfg_t mx6dl_arm2_hdmi_ddc_pads[] = {
+static iomux_v3_cfg_t cm_fx6_dl_hdmi_ddc_pads[] = {
 	MX6DL_PAD_KEY_COL3__HDMI_TX_DDC_SCL, /* HDMI DDC SCL */
 	MX6DL_PAD_KEY_ROW3__HDMI_TX_DDC_SDA, /* HDMI DDC SDA */
 };
 
-static iomux_v3_cfg_t mx6dl_arm2_i2c2_pads[] = {
+static iomux_v3_cfg_t cm_fx6_dl_i2c2_pads[] = {
 	MX6DL_PAD_KEY_COL3__I2C2_SCL,	/* I2C2 SCL */
 	MX6DL_PAD_KEY_ROW3__I2C2_SDA,	/* I2C2 SDA */
 };

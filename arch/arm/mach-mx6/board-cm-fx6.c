@@ -79,18 +79,16 @@
 
 /* GPIO PIN, sort by PORT/BIT */
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
+#define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
+#define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
 
 #define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
-#define MX6_ARM2_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
-#define MX6_ARM2_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
 #define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define MX6_ARM2_CAN2_EN		IMX_GPIO_NR(5, 24)
 #define MX6_ARM2_SD3_CD			IMX_GPIO_NR(6, 11)
 #define MX6_ARM2_SD3_WP			IMX_GPIO_NR(6, 14)
 #define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
 #define MX6_ARM2_CAN1_EN		IMX_GPIO_NR(7, 13)
-
-#define BMCR_PDOWN			0x0800 /* PHY Powerdown */
 
 static struct clk *sata_clk;
 static int spdif_en;
@@ -121,21 +119,21 @@ static int plt_sd_pad_change(unsigned int index, int clock)
 	switch (index) {
 	case 2:
 		if (cpu_is_mx6q()) {
-			sd_pads_200mhz = mx6q_sd3_200mhz;
-			sd_pads_100mhz = mx6q_sd3_100mhz;
-			sd_pads_50mhz = mx6q_sd3_50mhz;
+			sd_pads_200mhz = cm_fx6_q_sd3_200mhz;
+			sd_pads_100mhz = cm_fx6_q_sd3_100mhz;
+			sd_pads_50mhz  = cm_fx6_q_sd3_50mhz;
 
-			sd_pads_200mhz_cnt = ARRAY_SIZE(mx6q_sd3_200mhz);
-			sd_pads_100mhz_cnt = ARRAY_SIZE(mx6q_sd3_100mhz);
-			sd_pads_50mhz_cnt = ARRAY_SIZE(mx6q_sd3_50mhz);
+			sd_pads_200mhz_cnt = ARRAY_SIZE(cm_fx6_q_sd3_200mhz);
+			sd_pads_100mhz_cnt = ARRAY_SIZE(cm_fx6_q_sd3_100mhz);
+			sd_pads_50mhz_cnt  = ARRAY_SIZE(cm_fx6_q_sd3_50mhz);
 		} else if (cpu_is_mx6dl()) {
-			sd_pads_200mhz = mx6dl_sd3_200mhz;
-			sd_pads_100mhz = mx6dl_sd3_100mhz;
-			sd_pads_50mhz = mx6dl_sd3_50mhz;
+			sd_pads_200mhz = cm_fx6_dl_sd3_200mhz;
+			sd_pads_100mhz = cm_fx6_dl_sd3_100mhz;
+			sd_pads_50mhz  = cm_fx6_dl_sd3_50mhz;
 
-			sd_pads_200mhz_cnt = ARRAY_SIZE(mx6dl_sd3_200mhz);
-			sd_pads_100mhz_cnt = ARRAY_SIZE(mx6dl_sd3_100mhz);
-			sd_pads_50mhz_cnt = ARRAY_SIZE(mx6dl_sd3_50mhz);
+			sd_pads_200mhz_cnt = ARRAY_SIZE(cm_fx6_dl_sd3_200mhz);
+			sd_pads_100mhz_cnt = ARRAY_SIZE(cm_fx6_dl_sd3_100mhz);
+			sd_pads_50mhz_cnt  = ARRAY_SIZE(cm_fx6_dl_sd3_50mhz);
 		}
 		break;
 	default:
@@ -183,11 +181,11 @@ static int gpmi_nand_platform_init(void)
 	u32 nand_pads_cnt;
 
 	if (cpu_is_mx6q()) {
-		nand_pads = mx6q_gpmi_nand;
-		nand_pads_cnt = ARRAY_SIZE(mx6dl_gpmi_nand);
+		nand_pads = cm_fx6_q_gpmi_nand;
+		nand_pads_cnt = ARRAY_SIZE(cm_fx6_q_gpmi_nand);
 	} else if (cpu_is_mx6dl()) {
-		nand_pads = mx6dl_gpmi_nand;
-		nand_pads_cnt = ARRAY_SIZE(mx6dl_gpmi_nand);
+		nand_pads = cm_fx6_dl_gpmi_nand;
+		nand_pads_cnt = ARRAY_SIZE(cm_fx6_dl_gpmi_nand);
 
 	}
 	BUG_ON(!nand_pads);
@@ -225,6 +223,8 @@ static inline void mx6_arm2_init_uart(void)
 	imx6q_add_imx_uart(3, NULL);
 	imx6q_add_imx_uart(1, &mx6_arm2_uart1_data);
 }
+
+#define BMCR_PDOWN 0x0800 /* PHY Powerdown */
 
 static int cm_fx6_fec_phy_init(struct phy_device *phydev)
 {
@@ -275,8 +275,8 @@ static struct fec_platform_data cm_fx6_fec_data = {
 };
 
 static int cm_fx6_spi_cs[] = {
-	MX6_ARM2_ECSPI1_CS0,
-	MX6_ARM2_ECSPI1_CS1,
+	CM_FX6_ECSPI1_CS0,
+	CM_FX6_ECSPI1_CS1,
 };
 
 static const struct spi_imx_master cm_fx6_spi_data = {
@@ -539,21 +539,21 @@ static void hdmi_init(int ipu_id, int disp_id)
 static void hdmi_enable_ddc_pin(void)
 {
 	if (cpu_is_mx6dl())
-		mxc_iomux_v3_setup_multiple_pads(mx6dl_arm2_hdmi_ddc_pads,
-			ARRAY_SIZE(mx6dl_arm2_hdmi_ddc_pads));
+		mxc_iomux_v3_setup_multiple_pads(cm_fx6_dl_hdmi_ddc_pads,
+			ARRAY_SIZE(cm_fx6_dl_hdmi_ddc_pads));
 	else
-		mxc_iomux_v3_setup_multiple_pads(mx6q_arm2_hdmi_ddc_pads,
-			ARRAY_SIZE(mx6q_arm2_hdmi_ddc_pads));
+		mxc_iomux_v3_setup_multiple_pads(cm_fx6_q_hdmi_ddc_pads,
+			ARRAY_SIZE(cm_fx6_q_hdmi_ddc_pads));
 }
 
 static void hdmi_disable_ddc_pin(void)
 {
 	if (cpu_is_mx6dl())
-		mxc_iomux_v3_setup_multiple_pads(mx6dl_arm2_i2c2_pads,
-			ARRAY_SIZE(mx6dl_arm2_i2c2_pads));
+		mxc_iomux_v3_setup_multiple_pads(cm_fx6_dl_i2c2_pads,
+			ARRAY_SIZE(cm_fx6_dl_i2c2_pads));
 	else
-		mxc_iomux_v3_setup_multiple_pads(mx6q_arm2_i2c2_pads,
-			ARRAY_SIZE(mx6q_arm2_i2c2_pads));
+		mxc_iomux_v3_setup_multiple_pads(cm_fx6_q_i2c2_pads,
+			ARRAY_SIZE(cm_fx6_q_i2c2_pads));
 }
 
 static struct fsl_mxc_hdmi_platform_data hdmi_data = {
@@ -811,21 +811,21 @@ static void __init cm_fx6_init(void)
 	 */
 
 	if (cpu_is_mx6q()) {
-		common_pads = mx6q_arm2_pads;
-		spdif_pads = mx6q_arm2_spdif_pads;
-		flexcan_pads = mx6q_arm2_can_pads;
+		common_pads = cm_fx6_q_common_pads;
+		spdif_pads = cm_fx6_q_spdif_pads;
+		flexcan_pads = cm_fx6_q_can_pads;
 
-		common_pads_cnt = ARRAY_SIZE(mx6q_arm2_pads);
-		spdif_pads_cnt =  ARRAY_SIZE(mx6q_arm2_spdif_pads);
-		flexcan_pads_cnt = ARRAY_SIZE(mx6q_arm2_can_pads);
+		common_pads_cnt = ARRAY_SIZE(cm_fx6_q_common_pads);
+		spdif_pads_cnt =  ARRAY_SIZE(cm_fx6_q_spdif_pads);
+		flexcan_pads_cnt = ARRAY_SIZE(cm_fx6_q_can_pads);
 	} else if (cpu_is_mx6dl()) {
-		common_pads = mx6dl_arm2_pads;
-		spdif_pads = mx6dl_arm2_spdif_pads;
-		flexcan_pads = mx6dl_arm2_can_pads;
+		common_pads = cm_fx6_dl_pads;
+		spdif_pads = cm_fx6_dl_spdif_pads;
+		flexcan_pads = cm_fx6_dl_can_pads;
 
-		common_pads_cnt = ARRAY_SIZE(mx6dl_arm2_pads);
-		spdif_pads_cnt =  ARRAY_SIZE(mx6dl_arm2_spdif_pads);
-		flexcan_pads_cnt = ARRAY_SIZE(mx6dl_arm2_can_pads);
+		common_pads_cnt = ARRAY_SIZE(cm_fx6_dl_pads);
+		spdif_pads_cnt =  ARRAY_SIZE(cm_fx6_dl_spdif_pads);
+		flexcan_pads_cnt = ARRAY_SIZE(cm_fx6_dl_can_pads);
 	}
 
 	BUG_ON(!common_pads);
