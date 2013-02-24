@@ -191,7 +191,7 @@ static const struct esdhc_platform_data mx6_arm2_sd3_data __initconst = {
 	.platform_pad_change	= plt_sd_pad_change,
 };
 
-static int __init gpmi_nand_platform_init(void)
+static int gpmi_nand_platform_init(void)
 {
 	iomux_v3_cfg_t *nand_pads = NULL;
 	u32 nand_pads_cnt;
@@ -208,8 +208,7 @@ static int __init gpmi_nand_platform_init(void)
 	return mxc_iomux_v3_setup_multiple_pads(nand_pads, nand_pads_cnt);
 }
 
-static struct gpmi_nand_platform_data
-mx6_gpmi_nand_platform_data __initdata = {
+static struct gpmi_nand_platform_data mx6_gpmi_nand_platform_data = {
 	.platform_init           = gpmi_nand_platform_init,
 	.min_prop_delay_in_ns    = 5,
 	.max_prop_delay_in_ns    = 9,
