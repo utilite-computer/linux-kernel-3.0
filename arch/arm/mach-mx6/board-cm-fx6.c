@@ -426,7 +426,7 @@ static void imx6_arm2_usbotg_vbus(bool on)
 		gpio_set_value(MX6_ARM2_USB_OTG_PWR, 0);
 }
 
-static void __init mx6_arm2_init_usb(void)
+static void __init cm_fx6_init_usb(void)
 {
 	int ret = 0;
 
@@ -435,13 +435,12 @@ static void __init mx6_arm2_init_usb(void)
 	/* disable external charger detect,
 	 * or it will affect signal quality at dp.
 	 */
+	ret = gpio_request_one(MX6_ARM2_USB_OTG_PWR,
+			       GPIOF_OUT_INIT_LOW, "usb-pwr");
+	if (ret)
+		pr_err("%s: USB_OTG_PWR gpio request failed: %d\n",
+		       __func__, ret);
 
-	ret = gpio_request(MX6_ARM2_USB_OTG_PWR, "usb-pwr");
-	if (ret) {
-		pr_err("failed to get GPIO MX6_ARM2_USB_OTG_PWR:%d\n", ret);
-		return;
-	}
-	gpio_direction_output(MX6_ARM2_USB_OTG_PWR, 0);
 	mxc_iomux_set_gpr_register(1, 13, 1, 1);
 
 	mx6_set_otghost_vbus_func(imx6_arm2_usbotg_vbus);
@@ -970,7 +969,7 @@ static void __init cm_fx6_init(void)
 		imx6q_add_ahci(0, &mx6_arm2_sata_data);
 
 	imx6q_add_vpu();
-	mx6_arm2_init_usb();
+	cm_fx6_init_usb();
 	platform_device_register(&arm2_vmmc_reg_devices);
 	mx6_cpu_regulator_init();
 
