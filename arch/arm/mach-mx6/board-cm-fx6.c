@@ -79,9 +79,9 @@
 #include "board-cm-fx6-dl.h"
 
 /* GPIO PIN, sort by PORT/BIT */
-#define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_TSPENDOWN		IMX_GPIO_NR(2, 15)
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
+#define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
 
 #define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
@@ -355,7 +355,6 @@ static struct ads7846_platform_data ads7846_config = {
 static struct spi_board_info cm_fx6_spi0_board_info[] = {
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
 	{
-		/* The modalias must be the same as spi device driver name */
 		.modalias	= "m25p80",
 		.max_speed_hz	= 20000000,
 		.bus_num	= 0,
