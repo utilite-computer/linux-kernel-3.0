@@ -83,6 +83,7 @@
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
+#define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
 #define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
 #define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
@@ -426,6 +427,22 @@ static void imx6_arm2_usbotg_vbus(bool on)
 		gpio_set_value(MX6_ARM2_USB_OTG_PWR, 0);
 }
 
+static void __init cm_fx6_usb_hub_reset(void)
+{
+	int err;
+
+	err = gpio_request_one(CM_FX6_USB_HUB_RST,
+			       GPIOF_OUT_INIT_LOW, "usb hub rst");
+	if (err) {
+		pr_err("CM-FX6: usb hub rst gpio request failed: %d\n", err);
+		return;
+	}
+
+	udelay(10);
+	gpio_set_value(CM_FX6_USB_HUB_RST, 1);
+	msleep(1);
+}
+
 static void __init cm_fx6_init_usb(void)
 {
 	int ret = 0;
@@ -440,6 +457,8 @@ static void __init cm_fx6_init_usb(void)
 	if (ret)
 		pr_err("%s: USB_OTG_PWR gpio request failed: %d\n",
 		       __func__, ret);
+
+	cm_fx6_usb_hub_reset();
 
 	mxc_iomux_set_gpr_register(1, 13, 1, 1);
 
