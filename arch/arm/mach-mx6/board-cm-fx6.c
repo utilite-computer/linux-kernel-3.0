@@ -64,6 +64,7 @@
 #include <mach/ipu-v3.h>
 #include <mach/mxc_hdmi.h>
 #include <mach/mxc_asrc.h>
+#include <mach/esdhc.h>
 
 #include <asm/irq.h>
 #include <asm/setup.h>
@@ -85,11 +86,12 @@
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
 #define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
+#define SB_FX6_SD3_WP			IMX_GPIO_NR(7, 0)
+#define SB_FX6_SD3_CD			IMX_GPIO_NR(7, 1)
+
 #define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
 #define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define MX6_ARM2_CAN2_EN		IMX_GPIO_NR(5, 24)
-#define MX6_ARM2_SD3_CD			IMX_GPIO_NR(6, 11)
-#define MX6_ARM2_SD3_WP			IMX_GPIO_NR(6, 14)
 #define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
 #define MX6_ARM2_CAN1_EN		IMX_GPIO_NR(7, 13)
 
@@ -169,10 +171,9 @@ static int plt_sd_pad_change(unsigned int index, int clock)
 }
 
 static const struct esdhc_platform_data mx6_arm2_sd3_data __initconst = {
-	.cd_gpio		= MX6_ARM2_SD3_CD,
-	.wp_gpio		= MX6_ARM2_SD3_WP,
-	.support_18v		= 1,
-	.support_8bit		= 1,
+	.cd_type		= ESDHC_CD_GPIO,
+	.cd_gpio		= SB_FX6_SD3_CD,
+	.wp_gpio		= SB_FX6_SD3_WP,
 	.keep_power_at_suspend	= 1,
 	.delay_line		= 0,
 	.platform_pad_change	= plt_sd_pad_change,
