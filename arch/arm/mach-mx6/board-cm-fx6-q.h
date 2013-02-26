@@ -26,6 +26,9 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_EIM_EB3__GPIO_2_31,
 	/* TSPENDOWN */
 	MX6Q_PAD_SD4_DAT7__GPIO_2_15,
+	/* USBH1 VBUS control */
+	MX6Q_PAD_GPIO_0__USBOH3_USBH1_PWR,
+
 	/* ENET */
 	MX6Q_PAD_ENET_MDIO__ENET_MDIO,
 	MX6Q_PAD_ENET_MDC__ENET_MDC,
