@@ -179,7 +179,8 @@ static const struct esdhc_platform_data cm_fx6_sd3_data = {
 	.platform_pad_change	= plt_sd_pad_change,
 };
 
-static int cm_fx6_gpmi_nand_init(void)
+#if defined(CONFIG_MTD_NAND_GPMI_NAND)
+static int cm_fx6_gpmi_nand_init_pads(void)
 {
 	iomux_v3_cfg_t *nand_pads = NULL;
 	u32 nand_pads_cnt;
@@ -196,21 +197,36 @@ static int cm_fx6_gpmi_nand_init(void)
 	return mxc_iomux_v3_setup_multiple_pads(nand_pads, nand_pads_cnt);
 }
 
-static struct gpmi_nand_platform_data cm_fx6_gpmi_nand_pdata = {
-	.platform_init           = cm_fx6_gpmi_nand_init,
-	.min_prop_delay_in_ns    = 5,
-	.max_prop_delay_in_ns    = 9,
-	.max_chip_count          = 1,
-	.enable_bbt              = 1,
-	.enable_ddr              = 0,
+static struct mtd_partition cm_fx6_nand_partitions[] = {
+	{
+		.name	= "nand",
+		.offset	= 0,
+		.size	= MTDPART_SIZ_FULL,
+	},
 };
 
-static int __init cm_fx6_enable_onfi_nand_support(char *p)
+static struct gpmi_nand_platform_data cm_fx6_gpmi_nand_pdata = {
+	.platform_init		= cm_fx6_gpmi_nand_init_pads,
+	.min_prop_delay_in_ns	= 5,
+	.max_prop_delay_in_ns	= 9,
+	.max_chip_count		= 1,
+	.partitions		= cm_fx6_nand_partitions,
+	.partition_count	= ARRAY_SIZE(cm_fx6_nand_partitions),
+	.enable_bbt		= 1,
+};
+
+static void __init cm_fx6_nand_init(void)
 {
-	cm_fx6_gpmi_nand_pdata.enable_ddr = 1;
-	return 0;
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_gpmi(&cm_fx6_gpmi_nand_pdata);
+	if (IS_ERR(pdev))
+		pr_err("%s: GPMI NAND registration failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
 }
-early_param("onfi_support", cm_fx6_enable_onfi_nand_support);
+#else
+static inline void cm_fx6_nand_init(void) {}
+#endif
 
 static const struct anatop_thermal_platform_data cm_fx6_anatop_thermal_data = {
 	.name = "anatop_thermal",
@@ -1003,7 +1019,8 @@ static void __init cm_fx6_init(void)
 	imx6q_add_viim();
 	imx6q_add_imx2_wdt(0, NULL);
 	imx6q_add_dma();
-	imx6q_add_gpmi(&cm_fx6_gpmi_nand_pdata);
+
+	cm_fx6_nand_init();
 
 	imx6q_add_dvfs_core(&arm2_dvfscore_data);
 
