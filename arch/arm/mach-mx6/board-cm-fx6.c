@@ -32,6 +32,7 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/flash.h>
 #include <linux/spi/ads7846.h>
+#include <linux/spi/scf0403.h>
 #include <linux/i2c.h>
 #include <linux/i2c/pca953x.h>
 #include <linux/i2c/at24.h>
@@ -84,10 +85,13 @@
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
+#define CM_FX6_ECSPI2_CS2		IMX_GPIO_NR(3, 24)
+#define CM_FX6_ECSPI2_CS3		IMX_GPIO_NR(3, 25)
 #define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
 #define SB_FX6_SD3_WP			IMX_GPIO_NR(7, 0)
 #define SB_FX6_SD3_CD			IMX_GPIO_NR(7, 1)
+#define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
 #define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
 #define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
@@ -300,9 +304,19 @@ static int cm_fx6_spi0_cs[] = {
 	CM_FX6_ECSPI1_CS1,	/* CS1 */
 };
 
+static int cm_fx6_spi1_cs[] = {
+	CM_FX6_ECSPI2_CS2,	/* CS0 */
+	CM_FX6_ECSPI2_CS3,	/* CS1 */
+};
+
 static const struct spi_imx_master cm_fx6_spi0_data = {
 	.chipselect	= cm_fx6_spi0_cs,
 	.num_chipselect	= ARRAY_SIZE(cm_fx6_spi0_cs),
+};
+
+static const struct spi_imx_master cm_fx6_spi1_data = {
+	.chipselect	= cm_fx6_spi1_cs,
+	.num_chipselect	= ARRAY_SIZE(cm_fx6_spi1_cs),
 };
 
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
@@ -384,6 +398,10 @@ static void __init ads7846_init(void)
 static inline void ads7846_init(void) {}
 #endif /* CONFIG_TOUCHSCREEN_ADS7846 */
 
+static struct scf0403_pdata scf0403_config = {
+	.reset_gpio	= SB_FX6_LCD_RST,
+};
+
 static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
 	{
@@ -403,6 +421,18 @@ static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 		.chip_select	= 1,
 		.irq		= gpio_to_irq(CM_FX6_TSPENDOWN),
 		.platform_data	= &ads7846_config,
+	},
+#endif
+};
+
+static struct spi_board_info cm_fx6_spi1_board_info[] __initdata = {
+#if defined(CONFIG_LCD_SCF0403) || defined(CONFIG_LCD_SCF0403_MODULE)
+	{
+		.modalias               = "scf0403",
+		.max_speed_hz           = 1000000,
+		.bus_num                = 1,
+		.chip_select            = 1,
+		.platform_data          = &scf0403_config,
 	},
 #endif
 };
@@ -432,6 +462,9 @@ static void __init cm_fx6_spi_init(void)
 	spi_register_bus_binfo(0, &cm_fx6_spi0_data,
 			       cm_fx6_spi0_board_info,
 			       ARRAY_SIZE(cm_fx6_spi0_board_info));
+	spi_register_bus_binfo(1, &cm_fx6_spi1_data,
+			       cm_fx6_spi1_board_info,
+			       ARRAY_SIZE(cm_fx6_spi1_board_info));
 }
 #else /* CONFIG_SPI_IMX */
 static inline void cm_fx6_spi_init(void) {}
