@@ -814,12 +814,31 @@ static struct imx_ipuv3_platform_data ipu_data[] = {
 	},
 };
 
-static struct platform_pwm_backlight_data mx6_arm2_pwm_backlight_data = {
-	.pwm_id		= 0,
+#if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
+static struct platform_pwm_backlight_data sb_fx6_pwm_backlight_data = {
+	.pwm_id		= 2,
 	.max_brightness	= 255,
-	.dft_brightness	= 128,
-	.pwm_period_ns	= 50000,
+	.dft_brightness	= 255,
+	.pwm_period_ns	= 100000,
 };
+
+static void __init cm_fx6_pwm_init(void)
+{
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_mxc_pwm(2);
+	if (IS_ERR(pdev))
+		pr_err("%s: PWM 2 register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+
+	pdev = imx6q_add_mxc_pwm_backlight(2, &sb_fx6_pwm_backlight_data);
+	if (IS_ERR(pdev))
+		pr_err("%s: backlight on PWM 2 register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+}
+#else /* CONFIG_BACKLIGHT_PWM */
+static inline void cm_fx6_pwm_init() {}
+#endif /* CONFIG_BACKLIGHT_PWM */
 
 static struct gpio mx6_flexcan_gpios[] = {
 	{ MX6_ARM2_CAN1_EN, GPIOF_OUT_INIT_LOW, "flexcan1-en" },
@@ -1142,8 +1161,7 @@ static void __init cm_fx6_init(void)
 
 	imx6q_add_dvfs_core(&arm2_dvfscore_data);
 
-	imx6q_add_mxc_pwm(0);
-	imx6q_add_mxc_pwm_backlight(0, &mx6_arm2_pwm_backlight_data);
+	cm_fx6_pwm_init();
 
 	if (spdif_en) {
 		mxc_spdif_data.spdif_core_clk = clk_get_sys("mxc_spdif.0", NULL);

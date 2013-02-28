@@ -30,6 +30,8 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_SD3_RST__GPIO_7_8,
 	/* USBH1 VBUS control */
 	MX6Q_PAD_GPIO_0__USBOH3_USBH1_PWR,
+	/* LCD PWM back light */
+	MX6Q_PAD_SD4_DAT1__PWM3_PWMO,
 
 	/* ENET */
 	MX6Q_PAD_ENET_MDIO__ENET_MDIO,
