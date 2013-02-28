@@ -36,6 +36,9 @@ struct scf0403_priv {
 
 static void scf0403_gpio_reset(unsigned int gpio)
 {
+	if (!gpio_is_valid(gpio))
+		return;
+
 	gpio_set_value_cansleep(gpio, 1);
 	msleep(100);
 	gpio_set_value_cansleep(gpio, 0);
