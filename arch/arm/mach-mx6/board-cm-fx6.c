@@ -27,6 +27,7 @@
 #include <linux/init.h>
 #include <linux/input.h>
 #include <linux/clk.h>
+#include <linux/err.h>
 #include <linux/platform_device.h>
 #include <linux/fsl_devices.h>
 #include <linux/spi/spi.h>
