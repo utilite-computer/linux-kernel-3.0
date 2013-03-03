@@ -91,9 +91,11 @@
 #define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
 #define SB_FX6_HX8520_PENDOWN		IMX_GPIO_NR(1, 4)
+#define SB_FX6_ETH_RST			IMX_GPIO_NR(1, 26)
 #define SB_FX6_SD3_WP			IMX_GPIO_NR(7, 0)
 #define SB_FX6_SD3_CD			IMX_GPIO_NR(7, 1)
 #define SB_FX6_GPIO_EXT_BASE		IMX_GPIO_NR(8, 0)
+#define SB_FX6_PCIE_MUX_PWR		IMX_GPIO_NR(8, 4)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
 #define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
@@ -1052,8 +1054,8 @@ static struct mxc_spdif_platform_data mxc_spdif_data = {
 };
 
 static const struct imx_pcie_platform_data mx6_arm2_pcie_data  __initconst = {
-	.pcie_pwr_en	= -EINVAL,
-	.pcie_rst	= -EINVAL,
+	.pcie_pwr_en	= SB_FX6_PCIE_MUX_PWR,
+	.pcie_rst	= SB_FX6_ETH_RST,
 	.pcie_wake_up	= -EINVAL,
 	.pcie_dis	= -EINVAL,
 };
