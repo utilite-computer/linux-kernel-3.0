@@ -96,7 +96,6 @@
 #define SB_FX6_GPIO_EXT_BASE		IMX_GPIO_NR(8, 0)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
-#define MX6_ARM2_LDB_BACKLIGHT		IMX_GPIO_NR(1, 9)
 #define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define MX6_ARM2_CAN2_EN		IMX_GPIO_NR(5, 24)
 #define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
@@ -1189,8 +1188,6 @@ static void __init cm_fx6_init(void)
 	imx_asrc_data.asrc_audio_clk = clk_get(NULL, "asrc_serial_clk");
 	imx6q_add_asrc(&imx_asrc_data);
 
-	gpio_request_one(MX6_ARM2_LDB_BACKLIGHT, GPIOF_OUT_INIT_HIGH,
-			 "ldb-backlight");
 	imx6q_add_otp();
 	imx6q_add_viim();
 	imx6q_add_imx2_wdt(0, NULL);
