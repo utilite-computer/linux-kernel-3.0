@@ -26,6 +26,8 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_EIM_EB3__GPIO_2_31,
 	/* ADS7846 PENDOWN */
 	MX6Q_PAD_SD4_DAT7__GPIO_2_15,
+	/* HX8520_C PENDOWN */
+	MX6Q_PAD_GPIO_4__GPIO_1_4,
 	/* USB HUB Reset */
 	MX6Q_PAD_SD3_RST__GPIO_7_8,
 	/* USBH1 VBUS control */

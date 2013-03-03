@@ -90,6 +90,7 @@
 #define CM_FX6_ECSPI2_CS3		IMX_GPIO_NR(3, 25)
 #define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
+#define SB_FX6_HX8520_PENDOWN		IMX_GPIO_NR(1, 4)
 #define SB_FX6_SD3_WP			IMX_GPIO_NR(7, 0)
 #define SB_FX6_SD3_CD			IMX_GPIO_NR(7, 1)
 #define SB_FX6_GPIO_EXT_BASE		IMX_GPIO_NR(8, 0)
@@ -491,6 +492,23 @@ static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
 };
 #endif
 
+#if defined(CONFIG_TOUCHSCREEN_HX8520_C) || \
+	defined(CONFIG_TOUCHSCREEN_HX8520_C_MODULE)
+static void __init hx8520_c_init(void)
+{
+	int err;
+
+	err = gpio_request_one(SB_FX6_HX8520_PENDOWN, GPIOF_IN, "hx8520_pen");
+	if (err) {
+		pr_err("Couldn't obtain gpio for hx8520_pen: %d\n", err);
+		return;
+	}
+	gpio_export(SB_FX6_HX8520_PENDOWN, 0);
+}
+#else /* CONFIG_TOUCHSCREEN_HX8520_C */
+static inline void hx8520_c_init(void) {}
+#endif /* CONFIG_TOUCHSCREEN_HX8520_C */
+
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
 static struct at24_platform_data sb_fx6_eeprom_pdata = {
         .byte_len       = 256,
@@ -503,6 +521,13 @@ static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
 	{
 		I2C_BOARD_INFO("pca9555", 0x26),
 		.platform_data = &sb_fx6_gpio_ext_pdata,
+	},
+#endif
+#if defined(CONFIG_TOUCHSCREEN_HX8520_C) || \
+	defined(CONFIG_TOUCHSCREEN_HX8520_C_MODULE)
+	{
+		I2C_BOARD_INFO("hx8520-c", 0x4A),
+		.irq = gpio_to_irq(SB_FX6_HX8520_PENDOWN),
 	},
 #endif
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
@@ -556,6 +581,7 @@ static void __init i2c_register_bus_binfo(int busnum,
 
 static void __init cm_fx6_i2c_init(void)
 {
+	hx8520_c_init();
 	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, cm_fx6_i2c0_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c0_board_info));
 	i2c_register_bus_binfo(1, &cm_fx6_i2c1_data, cm_fx6_i2c1_board_info,
