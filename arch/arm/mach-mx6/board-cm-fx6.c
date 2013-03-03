@@ -82,7 +82,7 @@
 #include "board-cm-fx6-dl.h"
 
 /* GPIO PIN, sort by PORT/BIT */
-#define CM_FX6_TSPENDOWN		IMX_GPIO_NR(2, 15)
+#define CM_FX6_ADS7846_PENDOWN		IMX_GPIO_NR(2, 15)
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
@@ -383,7 +383,7 @@ static struct ads7846_platform_data ads7846_config = {
 	.debounce_max		= 30,
 	.debounce_tol		= 10,
 	.debounce_rep		= 1,
-	.gpio_pendown		= CM_FX6_TSPENDOWN,
+	.gpio_pendown		= CM_FX6_ADS7846_PENDOWN,
 	.keep_vref_on		= 1,
 };
 
@@ -421,7 +421,7 @@ static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 		.max_speed_hz	= 1500000,
 		.bus_num	= 0,
 		.chip_select	= 1,
-		.irq		= gpio_to_irq(CM_FX6_TSPENDOWN),
+		.irq		= gpio_to_irq(CM_FX6_ADS7846_PENDOWN),
 		.platform_data	= &ads7846_config,
 	},
 #endif

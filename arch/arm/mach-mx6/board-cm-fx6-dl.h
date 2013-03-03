@@ -24,7 +24,7 @@ static iomux_v3_cfg_t cm_fx6_dl_pads[] = {
 	MX6DL_PAD_KEY_ROW0__UART4_RXD,
 	/* Green LED */
 	MX6DL_PAD_EIM_EB3__GPIO_2_31,
-	/* TSPENDOWN */
+	/* ADS7846 PENDOWN */
 	MX6DL_PAD_SD4_DAT7__GPIO_2_15,
 	/* USB HUB Reset */
 	MX6DL_PAD_SD3_RST__GPIO_7_8,
