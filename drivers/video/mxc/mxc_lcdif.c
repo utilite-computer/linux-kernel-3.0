@@ -40,18 +40,17 @@ static struct fb_videomode lcdif_modedb[] = {
 	FB_VMODE_NONINTERLACED,
 	0,},
 	{
-	/* 480x800, pixel clk @ 35MHz */
+	/* 480x800 @ 60 Hz , pixel clk @ 29MHz */
 		.name		= "SCF04-WVGA",
 		.xres		= 480,
 		.yres		= 800,
-		.pixclock	= 28800,
+		.pixclock	= 34722,
 		.left_margin	= 12,
 		.right_margin	= 16,
 		.upper_margin	= 30,
 		.lower_margin	= 40,
 		.hsync_len	= 26,
 		.vsync_len	= 30,
-		.sync		= FB_SYNC_CLK_LAT_FALL,
 		.vmode		= FB_VMODE_NONINTERLACED,
 	},
 };
