@@ -641,9 +641,6 @@ static void __init cm_fx6_init_usb(void)
 	mx6_usb_dr_init();
 }
 
-static struct viv_gpu_platform_data imx6_gpu_pdata __initdata = {
-	.reserved_mem_size = SZ_64M,
-};
 
 /* HW Initialization, if return 0, initialization is successful. */
 static int mx6_arm2_sata_init(struct device *dev, void __iomem *addr)
@@ -729,10 +726,6 @@ static struct ahci_platform_data mx6_arm2_sata_data = {
 	.exit	= mx6_arm2_sata_exit,
 };
 
-static struct imx_asrc_platform_data imx_asrc_data = {
-	.channel_bits	= 4,
-	.clk_map_ver	= 2,
-};
 
 static void cm_fx6_hdmi_init(int ipu_id, int disp_id)
 {
@@ -1090,6 +1083,15 @@ static void __init cm_fx6_init_led(void)
 #else
 static inline void cm_fx6_init_led(void) {}
 #endif
+
+static struct imx_asrc_platform_data imx_asrc_data = {
+	.channel_bits	= 4,
+	.clk_map_ver	= 2,
+};
+
+static struct viv_gpu_platform_data imx6_gpu_pdata __initdata = {
+	.reserved_mem_size = SZ_64M,
+};
 
 /*
  * Board specific initialization.
