@@ -141,11 +141,6 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	/* PWM1 */
 	MX6Q_PAD_GPIO_9__PWM1_PWMO,
 
-	/* HDMI */
-	MX6Q_PAD_EIM_A25__HDMI_TX_CEC_LINE,
-	MX6Q_PAD_SD1_DAT1__HDMI_TX_OPHYDTB_0,
-	MX6Q_PAD_SD1_DAT0__HDMI_TX_OPHYDTB_1,
-
 	/* USBOTG ID pin */
 	MX6Q_PAD_GPIO_1__USBOTG_ID,
 };
