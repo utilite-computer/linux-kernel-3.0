@@ -143,6 +143,18 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 
 	/* USBOTG ID pin */
 	MX6Q_PAD_GPIO_1__USBOTG_ID,
+
+	/* SATA PWR */
+	MX6Q_PAD_ENET_TX_EN__GPIO_1_28,	/* SATA_PWREN */
+	MX6Q_PAD_EIM_A22__GPIO_2_16,	/* SATA_LDO_EN */
+	MX6Q_PAD_EIM_D20__GPIO_3_20,	/* SATA_nSTANDBY1 */
+	MX6Q_PAD_EIM_A25__GPIO_5_2,	/* SATA_nSTANDBY2 */
+	/* SATA CTRL */
+	MX6Q_PAD_ENET_TXD0__GPIO_1_30,	/* SATA_VDDC_CTRL */
+	MX6Q_PAD_EIM_D23__GPIO_3_23,	/* SATA_PHY_SLP */
+	MX6Q_PAD_EIM_D29__GPIO_3_29,	/* SATA_STBY_REQ */
+	MX6Q_PAD_EIM_A23__GPIO_6_6,	/* SATA_nRSTDLY */
+	MX6Q_PAD_EIM_BCLK__GPIO_6_31,	/* SATA_PWLOSS_INT */
 };
 
 static iomux_v3_cfg_t cm_fx6_q_spdif_pads[] = {

@@ -81,13 +81,22 @@
 #include "board-cm-fx6-q.h"
 #include "board-cm-fx6-dl.h"
 
-/* GPIO PIN, sort by PORT/BIT */
+/* GPIO PIN, sort by board/PORT/BIT */
+#define CM_FX6_SATA_PWREN		IMX_GPIO_NR(1, 28)
+#define CM_FX6_SATA_VDDC_CTRL		IMX_GPIO_NR(1, 30)
 #define CM_FX6_ADS7846_PENDOWN		IMX_GPIO_NR(2, 15)
+#define CM_FX6_SATA_LDO_EN		IMX_GPIO_NR(2, 16)
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
+#define CM_FX6_SATA_nSTANDBY1		IMX_GPIO_NR(3, 20)
+#define CM_FX6_SATA_PHY_SLP		IMX_GPIO_NR(3, 23)
 #define CM_FX6_ECSPI2_CS2		IMX_GPIO_NR(3, 24)
 #define CM_FX6_ECSPI2_CS3		IMX_GPIO_NR(3, 25)
+#define CM_FX6_SATA_STBY_REQ		IMX_GPIO_NR(3, 29)
+#define CM_FX6_SATA_nSTANDBY2		IMX_GPIO_NR(5, 2)
+#define CM_FX6_SATA_nRSTDLY		IMX_GPIO_NR(6, 6)
+#define CM_FX6_SATA_PWLOSS_INT		IMX_GPIO_NR(6, 31)
 #define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
 #define SB_FX6_HX8520_PENDOWN		IMX_GPIO_NR(1, 4)
@@ -644,6 +653,26 @@ static void __init cm_fx6_init_usb(void)
 	defined(CONFIG_SATA_AHCI_PLATFORM_MODULE)
 static struct clk *sata_clk;
 
+static struct gpio sata_issd_gpios[] = {
+	/* The order of the GPIOs in the array is important! */
+	{ CM_FX6_SATA_PHY_SLP,	 GPIOF_OUT_INIT_LOW,	"sata phy slp" },
+	{ CM_FX6_SATA_nRSTDLY,	 GPIOF_OUT_INIT_LOW,	"sata nrst" },
+	{ CM_FX6_SATA_PWREN,	 GPIOF_OUT_INIT_LOW,	"sata pwren" },
+	{ CM_FX6_SATA_nSTANDBY1, GPIOF_OUT_INIT_LOW,	"sata nstndby1" },
+	{ CM_FX6_SATA_nSTANDBY2, GPIOF_OUT_INIT_LOW,	"sata nstndby2" },
+	{ CM_FX6_SATA_LDO_EN,	 GPIOF_OUT_INIT_LOW,	"sata ldo en" },
+};
+
+static void cm_fx6_sata_power_on(bool on)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(sata_issd_gpios); i++) {
+		gpio_set_value(sata_issd_gpios[i].gpio, on ? 1 : 0);
+		udelay(100);
+	}
+}
+
 /* HW Initialization, if return 0, initialization is successful. */
 static int cm_fx6_sata_init(struct device *dev, void __iomem *addr)
 {
@@ -651,11 +680,21 @@ static int cm_fx6_sata_init(struct device *dev, void __iomem *addr)
 	int err;
 	struct clk *clk;
 
+	/* SATA PWR GPIOs */
+	err = gpio_request_array(sata_issd_gpios, ARRAY_SIZE(sata_issd_gpios));
+	if (err) {
+		dev_err(dev, "sata power GPIOs request failed: %d\n", err);
+		return err;
+	}
+	udelay(100);
+
+	cm_fx6_sata_power_on(true);
+
 	sata_clk = clk_get(dev, "imx_sata_clk");
 	if (IS_ERR(sata_clk)) {
 		err = PTR_ERR(sata_clk);
 		dev_err(dev, "no sata clock err: %d\n", err);
-		return err;
+		goto free_gpios;
 	}
 
 	err = clk_enable(sata_clk);
@@ -704,6 +743,9 @@ release_sata_clk:
 	clk_disable(sata_clk);
 put_sata_clk:
 	clk_put(sata_clk);
+free_gpios:
+	cm_fx6_sata_power_on(false);
+	gpio_free_array(sata_issd_gpios, ARRAY_SIZE(sata_issd_gpios));
 
 	return err;
 }
@@ -712,6 +754,9 @@ static void cm_fx6_sata_exit(struct device *dev)
 {
 	clk_disable(sata_clk);
 	clk_put(sata_clk);
+
+	cm_fx6_sata_power_on(false);
+	gpio_free_array(sata_issd_gpios, ARRAY_SIZE(sata_issd_gpios));
 }
 
 static struct ahci_platform_data cm_fx6_sata_pdata = {
