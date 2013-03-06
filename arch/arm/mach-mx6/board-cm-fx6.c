@@ -548,9 +548,11 @@ static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
 };
 
 static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
+#if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
 	{
 		I2C_BOARD_INFO("mxc_hdmi_i2c", 0x50),
 	},
+#endif
 };
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
@@ -779,6 +781,7 @@ static void __init cm_fx6_init_sata(void)
 static inline void cm_fx6_init_sata(void) {}
 #endif /* SATA_AHCI_PLATFORM */
 
+#if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
 static void cm_fx6_hdmi_init(int ipu_id, int disp_id)
 {
 	int hdmi_mux_setting;
@@ -830,6 +833,9 @@ static void __init cm_fx6_init_hdmi(void)
 		pr_err("%s: HDMI register failed: %ld\n",
 		       __func__, PTR_ERR(pdev));
 }
+#else /* CONFIG_FB_MXC_HDMI */
+static inline void cm_fx6_init_hdmi(void) {}
+#endif /* CONFIG_FB_MXC_HDMI */
 
 static struct ipuv3_fb_platform_data cm_fx6_fb_data[] = {
 	{
