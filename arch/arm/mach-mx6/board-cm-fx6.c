@@ -805,34 +805,8 @@ static void cm_fx6_hdmi_init(int ipu_id, int disp_id)
 		mxc_iomux_set_gpr_register(0, 0, 1, 1);
 }
 
-/*
- * cm-fx6 shares i2c2 with hdmi ddc, the default is i2c2 function,
- * when hdcp is enabled, the pins should work at ddc function.
- */
-static void hdmi_enable_ddc_pin(void)
-{
-	if (cpu_is_mx6dl())
-		mxc_iomux_v3_setup_multiple_pads(cm_fx6_dl_hdmi_ddc_pads,
-			ARRAY_SIZE(cm_fx6_dl_hdmi_ddc_pads));
-	else
-		mxc_iomux_v3_setup_multiple_pads(cm_fx6_q_hdmi_ddc_pads,
-			ARRAY_SIZE(cm_fx6_q_hdmi_ddc_pads));
-}
-
-static void hdmi_disable_ddc_pin(void)
-{
-	if (cpu_is_mx6dl())
-		mxc_iomux_v3_setup_multiple_pads(cm_fx6_dl_i2c2_pads,
-			ARRAY_SIZE(cm_fx6_dl_i2c2_pads));
-	else
-		mxc_iomux_v3_setup_multiple_pads(cm_fx6_q_i2c2_pads,
-			ARRAY_SIZE(cm_fx6_q_i2c2_pads));
-}
-
 static struct fsl_mxc_hdmi_platform_data cm_fx6_hdmi_data = {
 	.init = cm_fx6_hdmi_init,
-	.enable_pins = hdmi_enable_ddc_pin,
-	.disable_pins = hdmi_disable_ddc_pin,
 };
 
 static struct fsl_mxc_hdmi_core_platform_data cm_fx6_hdmi_core_data = {
