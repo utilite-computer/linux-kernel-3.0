@@ -781,6 +781,8 @@ static void __init cm_fx6_init_sata(void)
 static inline void cm_fx6_init_sata(void) {}
 #endif /* SATA_AHCI_PLATFORM */
 
+#if defined(CONFIG_FB_MXC_SYNC_PANEL) || \
+	defined(CONFIG_FB_MXC_SYNC_PANEL_MODULE)
 #if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
 static void cm_fx6_hdmi_init(int ipu_id, int disp_id)
 {
@@ -906,6 +908,9 @@ static void __init cm_fx6_init_display(void)
 		pr_err("%s: lcd interface register failed: %ld\n",
 		       __func__, PTR_ERR(pdev));
 }
+#else /* CONFIG_FB_MXC_SYNC_PANEL */
+static inline void cm_fx6_init_display(void) {}
+#endif /* CONFIG_FB_MXC_SYNC_PANEL */
 
 #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
 static struct platform_pwm_backlight_data sb_fx6_pwm_backlight_data = {
