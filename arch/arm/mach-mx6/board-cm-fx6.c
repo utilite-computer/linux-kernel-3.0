@@ -541,7 +541,7 @@ static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
 #endif
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
 	{
-		I2C_BOARD_INFO("at24", 0x54),
+		I2C_BOARD_INFO("at24", 0x50),
 		.platform_data = &sb_fx6_eeprom_pdata,
 	},
 #endif
