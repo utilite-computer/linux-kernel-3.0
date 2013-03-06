@@ -576,9 +576,41 @@ static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 };
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
+#define EEPROM_1ST_MAC_OFF		4
+
+static int eeprom_read(struct memory_accessor *mem_acc, unsigned char *buf,
+		       int offset, int size, const char* objname)
+{
+	ssize_t ret;
+
+	ret = mem_acc->read(mem_acc, buf, offset, size);
+	if (ret != size) {
+		pr_warn("CM-FX6: EEPROM %s read failed: %d\n", objname, ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static void eeprom_read_mac_address(struct memory_accessor *mem_acc,
+				    unsigned char *mac)
+{
+	char *objname = "MAC address";
+
+	if (eeprom_read(mem_acc, mac, EEPROM_1ST_MAC_OFF, ETH_ALEN, objname))
+		memset(mac, 0, ETH_ALEN);
+}
+
+static void cm_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
+{
+	eeprom_read_mac_address(mem_acc, cm_fx6_fec_data.mac);
+	imx6_init_fec(cm_fx6_fec_data);
+}
+
 static struct at24_platform_data cm_fx6_eeprom_pdata = {
         .byte_len       = 256,
         .page_size      = 16,
+	.setup		= cm_fx6_eeprom_setup,
 };
 #endif
 
@@ -1257,8 +1289,6 @@ static void __init cm_fx6_init(void)
 	cm_fx6_spi_init();
 
 	imx6q_add_anatop_thermal_imx(1, &cm_fx6_anatop_thermal_data);
-
-	imx6_init_fec(cm_fx6_fec_data);
 
 	imx6q_add_pm_imx(0, &mx6_arm2_pm_data);
 	imx6q_add_sdhci_usdhc_imx(2, &cm_fx6_sd3_data);
