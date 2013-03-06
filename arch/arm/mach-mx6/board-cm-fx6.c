@@ -525,6 +525,20 @@ static struct at24_platform_data sb_fx6_eeprom_pdata = {
 };
 #endif
 
+#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
+static int cm_fx6_dvi_update(void)
+{
+	/* sb-fx6 - always connected */
+	return 1;
+}
+
+static struct fsl_mxc_dvi_platform_data cm_fx6_dvi_data = {
+	.ipu_id		= 0,
+	.disp_id	= 0,
+	.update		= cm_fx6_dvi_update,
+};
+#endif /* CONFIG_FB_MXC_EDID */
+
 static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
 #if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
 	{
@@ -551,6 +565,12 @@ static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 #if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
 	{
 		I2C_BOARD_INFO("mxc_hdmi_i2c", 0x50),
+	},
+#endif
+#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
+	{	/* 0x7f - fake address, as sb-fx6 does not support DVI DDC */
+		I2C_BOARD_INFO("mxc_dvi", 0x7f),
+		.platform_data = &cm_fx6_dvi_data,
 	},
 #endif
 };
