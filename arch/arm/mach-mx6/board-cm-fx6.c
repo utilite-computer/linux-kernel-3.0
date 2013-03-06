@@ -811,7 +811,7 @@ static struct fsl_mxc_hdmi_platform_data cm_fx6_hdmi_data = {
 
 static struct fsl_mxc_hdmi_core_platform_data cm_fx6_hdmi_core_data = {
 	.ipu_id		= 0,
-	.disp_id	= 0,
+	.disp_id	= 1,
 };
 
 static void __init cm_fx6_init_hdmi(void)
