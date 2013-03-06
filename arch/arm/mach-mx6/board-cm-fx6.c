@@ -1127,6 +1127,27 @@ static void __init cm_fx6_init_led(void)
 static inline void cm_fx6_init_led(void) {}
 #endif
 
+#if defined(CONFIG_SND_SOC_IMX_HDMI) || defined(CONFIG_SND_SOC_IMX_HDMI_MODULE)
+static void __init cm_fx6_init_hdmi_audio(void)
+{
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_hdmi_soc();
+	if (IS_ERR(pdev)) {
+		pr_err("%s: HDMI SOC audio registration failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+		return;
+	}
+
+	pdev = imx6q_add_hdmi_soc_dai();
+	if (IS_ERR(pdev))
+		pr_err("%s: HDMI SOC DAI registration failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+}
+#else /* CONFIG_SND_SOC_IMX_HDMI */
+static inline void cm_fx6_init_hdmi_audio(void) {}
+#endif /* CONFIG_SND_SOC_IMX_HDMI */
+
 static struct imx_asrc_platform_data imx_asrc_data = {
 	.channel_bits	= 4,
 	.clk_map_ver	= 2,
@@ -1262,8 +1283,8 @@ static void __init cm_fx6_init(void)
 		}
 	}
 
-	imx6q_add_hdmi_soc();
-	imx6q_add_hdmi_soc_dai();
+	cm_fx6_init_hdmi_audio();
+
 	imx6q_add_perfmon(0);
 	imx6q_add_perfmon(1);
 	imx6q_add_perfmon(2);
