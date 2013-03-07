@@ -25,6 +25,7 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/scf0403.h>
 
+
 #define param(x) ((x) | 0x100)
 
 struct scf0403_priv {
@@ -357,6 +358,25 @@ static int __devexit scf0403_remove(struct spi_device *spi)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+static int scf0403_suspend(struct spi_device *spi, pm_message_t state)
+{
+	struct scf0403_priv *priv = dev_get_drvdata(&spi->dev);
+
+	return scf0403_lcd_power_set(priv->ld, FB_BLANK_POWERDOWN);
+}
+
+static int scf0403_resume(struct spi_device *spi)
+{
+	struct scf0403_priv *priv = dev_get_drvdata(&spi->dev);
+
+	return scf0403_lcd_power_set(priv->ld, FB_BLANK_UNBLANK);
+}
+#else
+#define scf0403_suspend  NULL
+#define scf0403_resume   NULL
+#endif
+
 static void scf0403_shutdown(struct spi_device *spi)
 {
 	struct scf0403_priv *priv = dev_get_drvdata(&spi->dev);
@@ -374,6 +394,8 @@ static struct spi_driver scf0403_driver = {
 	.probe		= scf0403_probe,
 	.remove		= __devexit_p(scf0403_remove),
 	.shutdown	= scf0403_shutdown,
+	.suspend        = scf0403_suspend,
+	.resume         = scf0403_resume,
 };
 
 static __init int scf0403_init(void)
