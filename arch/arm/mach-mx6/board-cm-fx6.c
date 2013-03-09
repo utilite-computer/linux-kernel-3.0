@@ -215,8 +215,13 @@ static int cm_fx6_gpmi_nand_init_pads(void)
 
 static struct mtd_partition cm_fx6_nand_partitions[] = {
 	{
-		.name	= "nand",
+		.name	= "linux",
 		.offset	= 0,
+		.size	= SZ_8M,
+	},
+	{
+		.name	= "rootfs",
+		.offset	= MTDPART_OFS_APPEND,
 		.size	= MTDPART_SIZ_FULL,
 	},
 };
