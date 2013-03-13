@@ -282,6 +282,9 @@ static inline int get_coeff(int mclk, int rate)
 		if (coeff_div[i].rate == rate && coeff_div[i].mclk == mclk)
 			return i;
 	}
+
+	pr_info("wm8731: inappropriate clock rates: mclk = %d  sampling = %d \n",
+			mclk, rate);
 	return 0;
 }
 
@@ -470,7 +473,9 @@ static int wm8731_set_bias_level(struct snd_soc_codec *codec,
 	return 0;
 }
 
-#define WM8731_RATES SNDRV_PCM_RATE_8000_96000
+#define WM8731_RATES	(SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_32000 | \
+			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
+			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000)
 
 #define WM8731_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
 	SNDRV_PCM_FMTBIT_S24_LE)
