@@ -45,17 +45,19 @@ static const char *audmux_port_string(int port)
 {
 	switch (port) {
 	case MX31_AUDMUX_PORT1_SSI0:
-		return "imx-ssi.0";
+		return "<Port 1>imx-ssi.0";
 	case MX31_AUDMUX_PORT2_SSI1:
-		return "imx-ssi.1";
+		return "<Port 2>imx-ssi.1";
 	case MX31_AUDMUX_PORT3_SSI_PINS_3:
-		return "SSI3";
+		return "<Port 3>SSI3";
 	case MX31_AUDMUX_PORT4_SSI_PINS_4:
-		return "SSI4";
+		return "<Port 4>SSI4";
 	case MX31_AUDMUX_PORT5_SSI_PINS_5:
-		return "SSI5";
+		return "<Port 5>SSI5";
 	case MX31_AUDMUX_PORT6_SSI_PINS_6:
-		return "SSI6";
+		return "<Port 6>SSI6";
+	case 6:
+		return "<Port 7>";
 	default:
 		return "UNKNOWN";
 	}
@@ -66,7 +68,7 @@ static ssize_t audmux_read_file(struct file *file, char __user *user_buf,
 {
 	ssize_t ret;
 	char *buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-	int port = (int)file->private_data;
+	int port = (int)file->private_data - 1;	/* actual enumeration from 0 */
 	u32 pdcr, ptcr;
 
 	if (!buf)
