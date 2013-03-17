@@ -569,6 +569,9 @@ int fsl_usb_host_init(struct platform_device *pdev)
 			else if (machine_is_mx6q_sabrelite())
 				USB_H1_CTRL |= UCTRL_OVER_CUR_POL;
 			USB_H1_CTRL |= UCTRL_OVER_CUR_DIS;
+
+			if (machine_is_cm_fx6())
+				USB_H1_CTRL |= UCTRL_PWR_POL;
 		}
 #endif
 	}

@@ -462,6 +462,7 @@
 #define UCTRL_RESET		(1 << 11)	/* Force OTG UTMI PHY Reset */
 #define UCTRL_OWIE		(1 << 10)	/* OTG wakeup intr request received */
 #define UCTRL_PM		(1 << 9)	/* OTG Power Mask */
+#define UCTRL_PWR_POL		(1 << 9)	/* Power polarity */
 #define UCTRL_OVER_CUR_POL	(1 << 8)	/* OTG Polarity of Overcurrent */
 #define UCTRL_OVER_CUR_DIS	(1 << 7)	/* Disable OTG Overcurrent Detection */
 /* bit 0 - bit 6 is reserved at mx6q */
