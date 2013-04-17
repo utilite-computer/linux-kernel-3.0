@@ -143,6 +143,9 @@ static iomux_v3_cfg_t cm_fx6_dl_pads[] = {
 
 	/* USBOTG ID pin */
 	MX6DL_PAD_GPIO_1__USBOTG_ID,
+
+	/* Audio codec: external clock */
+	MX6DL_PAD_GPIO_5__CCM_CLKO,
 };
 
 static iomux_v3_cfg_t cm_fx6_dl_spdif_pads[] = {

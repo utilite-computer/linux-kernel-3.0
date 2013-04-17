@@ -112,6 +112,7 @@
 #define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
 #define MX6_ARM2_CAN1_EN		IMX_GPIO_NR(7, 13)
 
+static struct clk *clko;
 static int spdif_en;
 static int flexcan_en;
 
@@ -266,6 +267,7 @@ static inline void cm_fx6_init_uart(void)
 }
 
 #define BMCR_PDOWN 0x0800 /* PHY Powerdown */
+#define	WM8731_MCLK_FREQ	(24000000 / 2)
 
 static int cm_fx6_fec_phy_init(struct phy_device *phydev)
 {
@@ -626,7 +628,86 @@ static struct i2c_board_info cm_fx6_i2c2_board_info[] __initdata = {
 		.platform_data = &cm_fx6_eeprom_pdata,
 	},
 #endif
+#if defined(CONFIG_SND_SOC_CM_FX6)
+	{
+		/* wm8731 audio codec */
+		I2C_BOARD_INFO("wm8731", 0x1a),
+	},
+#endif
 };
+
+static struct imx_ssi_platform_data cm_fx6_arm2_ssi_pdata = {
+        .flags = IMX_SSI_DMA | IMX_SSI_SYN,
+};
+
+static struct mxc_audio_platform_data cm_fx6_audio_data;
+
+static int wm8731_init(void)
+{
+	long rate;
+
+	rate = clk_round_rate(clko, WM8731_MCLK_FREQ);
+	clk_set_rate(clko, rate);
+	pr_info("%s: CLKO rate %d -> %ld \n", __FUNCTION__, WM8731_MCLK_FREQ, rate);
+
+	cm_fx6_audio_data.sysclk = rate;
+
+	return 0;
+}
+
+static int wm8731_clock_enable(int enable)
+{
+	if ( enable )
+		return clk_enable(clko);
+
+	clk_disable(clko);
+	return 0;
+}
+
+static struct platform_device cm_fx6_audio_device = {
+	.name	= "imx-wm8731",
+	.id	= -1,
+};
+
+static struct mxc_audio_platform_data cm_fx6_audio_data = {
+	.ssi_num = 1,
+	.src_port = 2,
+	.ext_port = 4,	/* AUDMUX: port[2] -> port[4] */
+	.hp_gpio = -1,
+	.mic_gpio = -1,
+	.init = wm8731_init,
+	.clock_enable = wm8731_clock_enable,
+};
+
+static int __init cm_fx6_init_audio(void)
+{
+	long rate;
+	struct clk *clko2;
+
+	clko2 = clk_get(NULL, "clko2_clk");
+	if (IS_ERR(clko2)) {
+		pr_err("Could not get CLKO2 clock \n");
+		return PTR_ERR(clko);
+	}
+	rate = clk_round_rate(clko2, WM8731_MCLK_FREQ);
+	clk_set_rate(clko2, rate);
+
+	clko = clk_get(NULL, "clko_clk");
+	if (IS_ERR(clko)) {
+		pr_err("Could not get CLKO clock \n");
+		return PTR_ERR(clko);
+	}
+
+	clk_set_parent(clko, clko2);
+
+	mxc_iomux_v3_setup_multiple_pads(mx6q_arm2_audmux_pads,
+					 ARRAY_SIZE(mx6q_arm2_audmux_pads));
+
+	mxc_register_device(&cm_fx6_audio_device, &cm_fx6_audio_data);
+	imx6q_add_imx_ssi(1, &cm_fx6_arm2_ssi_pdata);
+
+	return 0;
+}
 
 static void __init i2c_register_bus_binfo(int busnum,
 					  struct imxi2c_platform_data *i2cdata,
@@ -1348,6 +1429,9 @@ static void __init cm_fx6_init(void)
 	/* Add PCIe RC interface support */
 	imx6q_add_pcie(&mx6_arm2_pcie_data);
 	imx6q_add_busfreq();
+
+	/* Audio */
+	cm_fx6_init_audio();
 }
 
 extern void __iomem *twd_base;

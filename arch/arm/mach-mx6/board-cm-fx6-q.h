@@ -61,13 +61,7 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_SD1_DAT1__USDHC1_DAT1,
 	MX6Q_PAD_SD1_DAT2__USDHC1_DAT2,
 	MX6Q_PAD_SD1_DAT3__USDHC1_DAT3,
-	/* SD2 */
-	MX6Q_PAD_SD2_CLK__USDHC2_CLK,
-	MX6Q_PAD_SD2_CMD__USDHC2_CMD,
-	MX6Q_PAD_SD2_DAT0__USDHC2_DAT0,
-	MX6Q_PAD_SD2_DAT1__USDHC2_DAT1,
-	MX6Q_PAD_SD2_DAT2__USDHC2_DAT2,
-	MX6Q_PAD_SD2_DAT3__USDHC2_DAT3,
+
 	/* SD3 */
 	MX6Q_PAD_SD3_CLK__USDHC3_CLK_50MHZ,
 	MX6Q_PAD_SD3_CMD__USDHC3_CMD_50MHZ,
@@ -155,6 +149,9 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_EIM_D29__GPIO_3_29,	/* SATA_STBY_REQ */
 	MX6Q_PAD_EIM_A23__GPIO_6_6,	/* SATA_nRSTDLY */
 	MX6Q_PAD_EIM_BCLK__GPIO_6_31,	/* SATA_PWLOSS_INT */
+
+	/* Audio codec: external clock */
+	MX6Q_PAD_GPIO_5__CCM_CLKO,
 };
 
 static iomux_v3_cfg_t cm_fx6_q_spdif_pads[] = {
@@ -174,6 +171,16 @@ static iomux_v3_cfg_t cm_fx6_q_can_pads[] = {
 	MX6Q_PAD_KEY_COL4__CAN2_TXCAN,
 	MX6Q_PAD_KEY_ROW4__CAN2_RXCAN,
 	MX6Q_PAD_CSI0_DAT6__GPIO_5_24,	/* CAN2 EN */
+};
+
+static iomux_v3_cfg_t mx6q_arm2_audmux_pads[] = {
+	/* AUDMUX */
+	MX6Q_PAD_SD2_CMD__AUDMUX_AUD4_RXC,      /* unused */
+	MX6Q_PAD_SD2_CLK__AUDMUX_AUD4_RXFS,     /* unused */
+	MX6Q_PAD_SD2_DAT0__AUDMUX_AUD4_RXD,
+	MX6Q_PAD_SD2_DAT1__AUDMUX_AUD4_TXFS,
+	MX6Q_PAD_SD2_DAT2__AUDMUX_AUD4_TXD,
+	MX6Q_PAD_SD2_DAT3__AUDMUX_AUD4_TXC,
 };
 
 #define CM_FX6_Q_USDHC_PAD_SETTING(id, speed)	\
