@@ -157,7 +157,7 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 static iomux_v3_cfg_t cm_fx6_q_spdif_pads[] = {
 	/* SPDIF */
 	MX6Q_PAD_GPIO_16__SPDIF_IN1,
-	MX6Q_PAD_GPIO_17__SPDIF_OUT1,
+	MX6Q_PAD_GPIO_19__SPDIF_OUT1,
 };
 
 static iomux_v3_cfg_t cm_fx6_q_can_pads[] = {
