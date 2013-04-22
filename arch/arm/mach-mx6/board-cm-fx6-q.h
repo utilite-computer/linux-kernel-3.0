@@ -197,9 +197,23 @@ cm_fx6_q_sd##id##_##speed##mhz[] = {		\
 	MX6Q_PAD_SD##id##_DAT7__USDHC##id##_DAT7_##speed##MHZ,	\
 }
 
+#define CM_FX6_Q_USDHC_PAD_SETTING_HALF(id, speed)	\
+cm_fx6_q_sd##id##_##speed##mhz[] = {		\
+	MX6Q_PAD_SD##id##_CLK__USDHC##id##_CLK_##speed##MHZ,	\
+	MX6Q_PAD_SD##id##_CMD__USDHC##id##_CMD_##speed##MHZ,	\
+	MX6Q_PAD_SD##id##_DAT0__USDHC##id##_DAT0_##speed##MHZ,	\
+	MX6Q_PAD_SD##id##_DAT1__USDHC##id##_DAT1_##speed##MHZ,	\
+	MX6Q_PAD_SD##id##_DAT2__USDHC##id##_DAT2_##speed##MHZ,	\
+	MX6Q_PAD_SD##id##_DAT3__USDHC##id##_DAT3_##speed##MHZ,	\
+}
+
 static iomux_v3_cfg_t CM_FX6_Q_USDHC_PAD_SETTING(3, 50);
 static iomux_v3_cfg_t CM_FX6_Q_USDHC_PAD_SETTING(3, 100);
 static iomux_v3_cfg_t CM_FX6_Q_USDHC_PAD_SETTING(3, 200);
+
+static iomux_v3_cfg_t CM_FX6_Q_USDHC_PAD_SETTING_HALF(1, 50);
+static iomux_v3_cfg_t CM_FX6_Q_USDHC_PAD_SETTING_HALF(1, 100);
+static iomux_v3_cfg_t CM_FX6_Q_USDHC_PAD_SETTING_HALF(1, 200);
 
 #if defined(CONFIG_MTD_NAND_GPMI_NAND)
 static iomux_v3_cfg_t cm_fx6_q_gpmi_nand[] = {
