@@ -87,6 +87,10 @@
 #define CM_FX6_ADS7846_PENDOWN		IMX_GPIO_NR(2, 15)
 #define CM_FX6_SATA_LDO_EN		IMX_GPIO_NR(2, 16)
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
+
+#define CM_FX6_WIFI_NPD		IMX_GPIO_NR(7, 12)
+#define CM_FX6_WIFI_NRESET		IMX_GPIO_NR(6, 16)
+
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
 #define CM_FX6_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
 #define CM_FX6_SATA_nSTANDBY1		IMX_GPIO_NR(3, 20)
@@ -1310,6 +1314,28 @@ static void __init cm_fx6_init_hdmi_audio(void)
 static inline void cm_fx6_init_hdmi_audio(void) {}
 #endif /* CONFIG_SND_SOC_IMX_HDMI */
 
+static struct gpio cm_fx6_wifi_gpios[] = {
+	{ CM_FX6_WIFI_NPD, GPIOF_OUT_INIT_HIGH, "wifi pdn" },
+	{ CM_FX6_WIFI_NRESET, GPIOF_OUT_INIT_LOW, "wifi rstn" },
+};
+
+static void cm_fx6_init_wifi(void)
+{
+	int err;
+
+	err = gpio_request_array(cm_fx6_wifi_gpios,
+							 ARRAY_SIZE(cm_fx6_wifi_gpios));
+	if (err) {
+		pr_err("CM-FX6: failed to request wifi-gpios: %d\n", err);
+	} else {
+		msleep(1);
+		gpio_set_value(CM_FX6_WIFI_NRESET, 1);
+	}
+
+	gpio_export(CM_FX6_WIFI_NPD, 0);
+	gpio_export(CM_FX6_WIFI_NRESET, 0);
+}
+
 static struct imx_asrc_platform_data imx_asrc_data = {
 	.channel_bits	= 4,
 	.clk_map_ver	= 2,
@@ -1396,6 +1422,7 @@ static void __init cm_fx6_init(void)
 
 	cm_fx6_i2c_init();
 	cm_fx6_init_led();
+	cm_fx6_init_wifi();
 	cm_fx6_spi_init();
 
 	imx6q_add_anatop_thermal_imx(1, &cm_fx6_anatop_thermal_data);

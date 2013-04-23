@@ -152,6 +152,10 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 
 	/* Audio codec: external clock */
 	MX6Q_PAD_GPIO_5__CCM_CLKO,
+
+	/* Wlan */
+	MX6Q_PAD_GPIO_17__GPIO_7_12,   /* WIFI NPD */
+	MX6Q_PAD_NANDF_CS3__GPIO_6_16, /* WIFI NRESET */
 };
 
 static iomux_v3_cfg_t cm_fx6_q_spdif_pads[] = {
