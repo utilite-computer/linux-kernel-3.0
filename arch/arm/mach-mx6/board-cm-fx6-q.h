@@ -135,8 +135,9 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	/* PWM1 */
 	MX6Q_PAD_GPIO_9__PWM1_PWMO,
 
-	/* USBOTG ID pin */
-	MX6Q_PAD_GPIO_1__USBOTG_ID,
+	/* USBOTG: PWR, ID */
+	MX6Q_PAD_EIM_D22__GPIO_3_22,
+	MX6Q_PAD_ENET_RX_ER__ANATOP_USBOTG_ID,
 
 	/* SATA PWR */
 	MX6Q_PAD_ENET_TX_EN__GPIO_1_28,	/* SATA_PWREN */

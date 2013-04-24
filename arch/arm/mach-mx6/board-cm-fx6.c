@@ -105,13 +105,13 @@
 
 #define SB_FX6_HX8520_PENDOWN		IMX_GPIO_NR(1, 4)
 #define SB_FX6_ETH_RST			IMX_GPIO_NR(1, 26)
+#define SB_FX6_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define SB_FX6_SD3_WP			IMX_GPIO_NR(7, 0)
 #define SB_FX6_SD3_CD			IMX_GPIO_NR(7, 1)
 #define SB_FX6_GPIO_EXT_BASE		IMX_GPIO_NR(8, 0)
 #define SB_FX6_PCIE_MUX_PWR		IMX_GPIO_NR(8, 4)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
-#define MX6_ARM2_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define MX6_ARM2_CAN2_EN		IMX_GPIO_NR(5, 24)
 #define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
 #define MX6_ARM2_CAN1_EN		IMX_GPIO_NR(7, 13)
@@ -770,12 +770,12 @@ static void __init cm_fx6_i2c_init(void)
 static inline void cm_fx6_i2c_init(void) {}
 #endif /* CONFIG_I2C_IMX */
 
-static void imx6_arm2_usbotg_vbus(bool on)
+static void cm_fx6_usbotg_vbus(bool on)
 {
 	if (on)
-		gpio_set_value(MX6_ARM2_USB_OTG_PWR, 1);
+		gpio_set_value(SB_FX6_USB_OTG_PWR, 1);
 	else
-		gpio_set_value(MX6_ARM2_USB_OTG_PWR, 0);
+		gpio_set_value(SB_FX6_USB_OTG_PWR, 0);
 }
 
 static void __init cm_fx6_usb_hub_reset(void)
@@ -803,7 +803,7 @@ static void __init cm_fx6_init_usb(void)
 	/* disable external charger detect,
 	 * or it will affect signal quality at dp.
 	 */
-	ret = gpio_request_one(MX6_ARM2_USB_OTG_PWR,
+	ret = gpio_request_one(SB_FX6_USB_OTG_PWR,
 			       GPIOF_OUT_INIT_LOW, "usb-pwr");
 	if (ret)
 		pr_err("%s: USB_OTG_PWR gpio request failed: %d\n",
@@ -811,9 +811,9 @@ static void __init cm_fx6_init_usb(void)
 
 	cm_fx6_usb_hub_reset();
 
-	mxc_iomux_set_gpr_register(1, 13, 1, 1);
+	mxc_iomux_set_gpr_register(1, 13, 1, 0);
 
-	mx6_set_otghost_vbus_func(imx6_arm2_usbotg_vbus);
+	mx6_set_otghost_vbus_func(cm_fx6_usbotg_vbus);
 	mx6_usb_dr_init();
 }
 
