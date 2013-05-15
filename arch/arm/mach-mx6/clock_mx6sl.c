@@ -1680,6 +1680,7 @@ static struct clk mmdc_ch1_axi_clk[] = {
 	.secondary = &tzasc2_clk,
 	},
 };
+
 #if defined(CONFIG_SDMA_IRAM) || defined(CONFIG_SND_MXC_SOC_IRAM)
 static struct clk ocram_clk = {
 	__INIT_CLK_DEBUG(ocram_clk)
@@ -1691,6 +1692,7 @@ static struct clk ocram_clk = {
 	.disable = _clk_disable_inwait,
 };
 #endif
+
 static unsigned long _clk_ipg_perclk_get_rate(struct clk *clk)
 {
 	u32 reg, div;
