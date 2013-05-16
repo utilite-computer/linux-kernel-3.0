@@ -814,7 +814,6 @@ static void __init cm_fx6_init_usb(void)
 	mxc_iomux_set_gpr_register(1, 13, 1, 0);
 
 	mx6_set_otghost_vbus_func(cm_fx6_usbotg_vbus);
-	mx6_usb_dr_init();
 }
 
 #if defined(CONFIG_SATA_AHCI_PLATFORM) || \
