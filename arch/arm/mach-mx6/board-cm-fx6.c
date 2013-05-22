@@ -292,6 +292,7 @@ static inline void cm_fx6_init_uart(void)
 {
 	imx6q_add_imx_uart(3, NULL);
 	imx6q_add_imx_uart(1, &cm_fx6_uart1_data);
+	imx6q_add_imx_uart(4, NULL);
 }
 
 #define BMCR_PDOWN 0x0800 /* PHY Powerdown */
