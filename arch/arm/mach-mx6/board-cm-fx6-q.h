@@ -19,6 +19,10 @@
 #include <mach/iomux-mx6q.h>
 
 static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
+	/* UART1 */
+	MX6Q_PAD_SD3_DAT7__UART1_TXD,
+	MX6Q_PAD_SD3_DAT6__UART1_RXD,
+
 	/* UART4 for debug */
 	MX6Q_PAD_KEY_COL0__UART4_TXD,
 	MX6Q_PAD_KEY_ROW0__UART4_RXD,

@@ -19,6 +19,9 @@
 #include <mach/iomux-mx6dl.h>
 
 static iomux_v3_cfg_t cm_fx6_dl_pads[] = {
+	/* UART1 */
+	MX6DL_PAD_SD3_DAT7__UART1_TXD,
+	MX6DL_PAD_SD3_DAT6__UART1_RXD,
 	/* UART4 for debug */
 	MX6DL_PAD_KEY_COL0__UART4_TXD,
 	MX6DL_PAD_KEY_ROW0__UART4_RXD,
