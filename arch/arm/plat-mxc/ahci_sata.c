@@ -176,7 +176,7 @@ int sata_init(void __iomem *addr, unsigned long timer1ms)
 	/* Release resources when there is no device on the port */
 	do {
 		if ((readl(addr + PORT_SATA_SR) & 0xF) == 0)
-			usleep_range(1000, 2000);
+			msleep(25);
 		else
 			break;
 
