@@ -241,6 +241,8 @@ struct _coeff_div {
 
 /* codec mclk clock divider coefficients */
 static const struct _coeff_div coeff_div[] = {
+	{       0,     0,   0,   0,   0,   0},
+
 	/* 48k */
 	{12288000, 48000, 256, 0x0, 0x0, 0x0},
 	{18432000, 48000, 384, 0x0, 0x1, 0x0},
@@ -312,6 +314,9 @@ static int wm8731_hw_params(struct snd_pcm_substream *substream,
 		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
 		iface |= 0x0008;
+		break;
+	default:
+		iface |= 0x000C;
 		break;
 	}
 
