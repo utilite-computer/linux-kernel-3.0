@@ -120,8 +120,8 @@ extern const struct imx_ipuv3_data imx6q_ipuv3_data[] __initconst;
 			0, NULL, 0, pdata, sizeof(*pdata));
 
 extern const struct imx_ldb_data imx6q_ldb_data __initconst;
-#define imx6q_add_ldb(pdata) \
-	imx_add_ldb(&imx6q_ldb_data, pdata);
+#define imx6q_add_ldb(id, pdata) \
+	imx_add_ldb(&imx6q_ldb_data, pdata, id);
 
 #define imx6q_add_v4l2_output(id)	\
 	platform_device_register_resndata(NULL, "mxc_v4l2_output",\

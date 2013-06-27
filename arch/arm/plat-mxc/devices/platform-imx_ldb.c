@@ -40,7 +40,7 @@ const struct imx_ldb_data imx6q_ldb_data __initconst =
 
 struct platform_device *__init imx_add_ldb(
 		const struct imx_ldb_data *data,
-		struct fsl_mxc_ldb_platform_data *pdata)
+		struct fsl_mxc_ldb_platform_data *pdata, int id)
 {
 	struct resource res[] = {
 		{
@@ -50,7 +50,6 @@ struct platform_device *__init imx_add_ldb(
 		},
 	};
 
-	return imx_add_platform_device("mxc_ldb", -1,
+	return imx_add_platform_device("mxc_ldb", id,
 			res, ARRAY_SIZE(res), pdata, sizeof(*pdata));
 }
-

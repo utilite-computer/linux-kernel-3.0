@@ -1640,7 +1640,7 @@ static void __init mx6_board_init(void)
 	imx6q_add_vdoa();
 	imx6q_add_mipi_dsi(&mipi_dsi_pdata);
 	imx6q_add_lcdif(&lcdif_data);
-	imx6q_add_ldb(&ldb_data);
+	imx6q_add_ldb(-1, &ldb_data);
 	imx6q_add_v4l2_output(0);
 	imx6q_add_v4l2_capture(0, &capture_data[0]);
 	imx6q_add_v4l2_capture(1, &capture_data[1]);

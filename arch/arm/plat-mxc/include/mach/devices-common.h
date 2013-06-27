@@ -450,7 +450,7 @@ struct imx_ldb_data {
 
 struct platform_device *__init imx_add_ldb(
 	const struct imx_ldb_data *data,
-	struct fsl_mxc_ldb_platform_data *pdata);
+	struct fsl_mxc_ldb_platform_data *pdata, int id);
 
 struct imx_mxc_scc2_data {
 	resource_size_t iobase;
