@@ -1015,7 +1015,7 @@ static struct ipuv3_fb_platform_data cm_fx6_fb_data[] = {
 	}, {
 		.disp_dev               = "hdmi",
 		.interface_pix_fmt      = IPU_PIX_FMT_RGB24,
-		.mode_str               = "1280x720M@50",
+		.mode_str               = "1920x1080M-24@50",
 		.default_bpp            = 24,
 		.int_clk                = false,
 	}, {
