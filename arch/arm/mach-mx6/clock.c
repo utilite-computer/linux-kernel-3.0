@@ -3962,8 +3962,8 @@ static unsigned long _clk_emi_get_rate(struct clk *clk)
 
 	/* ACLK_EMI_PODF read value matches with real divider value */
 	reg = __raw_readl(MXC_CCM_CSCMR1);
-	div = (((reg & MXC_CCM_CSCMR1_ACLK_EMI_PODF_MASK) >>
-			MXC_CCM_CSCMR1_ACLK_EMI_PODF_OFFSET)^0x6) + 1;
+	div = ((reg & MXC_CCM_CSCMR1_ACLK_EMI_PODF_MASK) >>
+			MXC_CCM_CSCMR1_ACLK_EMI_PODF_OFFSET) + 1;
 
 	return clk_get_rate(clk->parent) / div;
 }
