@@ -1,5 +1,5 @@
 /*
- * scf0403.h -- Platform glue for DataImage SFC0403852GGU04 LCD
+ * scf0403.h -- Platform glue for DataImage SCF0403 LCD
  *
  * Copyright (c) 2009 Alberto Panizzo <maramaopercheseimorto@gmail.com>
  * Copyright (c) 2012 CompuLab, Ltd

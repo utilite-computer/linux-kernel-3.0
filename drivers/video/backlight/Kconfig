@@ -73,10 +73,10 @@ config LCD_TDO24M
 	  include the support for it.
 
 config LCD_SCF0403
-	tristate "DataImage SCF0403852GGU04 LCD Panel support"
+	tristate "DataImage SCF0403 LCD Panel support"
 	depends on SPI_MASTER
 	help
-	  If you have a DataImage SCF0403852GGU04 LCD panel, say y here to
+	  If you have a DataImage SCF0403 LCD panel, say y here to
 	  include support for it.
 
 config LCD_VGG2432A4
