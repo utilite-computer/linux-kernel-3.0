@@ -123,15 +123,15 @@ int set_cpu_freq(int freq)
 		ret = regulator_set_voltage(cpu_regulator, gp_volt,
 					    gp_volt);
 		if (ret < 0) {
-			printk(KERN_ERR "COULD NOT SET GP VOLTAGE!!!!\n");
+			/* printk(KERN_ERR "COULD NOT SET GP VOLTAGE!!!!\n"); */
 			goto err5;
 		}
 		if (!IS_ERR(soc_regulator)) {
 			ret = regulator_set_voltage(soc_regulator, soc_volt,
 							soc_volt);
 			if (ret < 0) {
-				printk(KERN_ERR
-					"COULD NOT SET SOC VOLTAGE BACK!!!!\n");
+				/* printk(KERN_ERR
+					"COULD NOT SET SOC VOLTAGE BACK!!!!\n"); */
 				goto err6;
 			}
 		}
