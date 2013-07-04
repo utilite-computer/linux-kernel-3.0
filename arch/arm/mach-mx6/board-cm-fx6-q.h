@@ -187,7 +187,7 @@ static iomux_v3_cfg_t cm_fx6_q_can_pads[] = {
 	MX6Q_PAD_CSI0_DAT6__GPIO_5_24,	/* CAN2 EN */
 };
 
-static iomux_v3_cfg_t mx6q_arm2_audmux_pads[] = {
+static iomux_v3_cfg_t cm_fx6_q_audmux_pads[] = {
 	/* AUDMUX */
 	MX6Q_PAD_SD2_CMD__AUDMUX_AUD4_RXC,      /* unused */
 	MX6Q_PAD_SD2_CLK__AUDMUX_AUD4_RXFS,     /* unused */

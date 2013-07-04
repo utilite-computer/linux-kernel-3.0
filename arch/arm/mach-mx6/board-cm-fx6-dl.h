@@ -174,6 +174,16 @@ static iomux_v3_cfg_t cm_fx6_dl_can_pads[] = {
 	MX6DL_PAD_CSI0_DAT6__GPIO_5_24,	/* CAN2 EN */
 };
 
+static iomux_v3_cfg_t cm_fx6_dl_audmux_pads[] = {
+	/* AUDMUX */
+	MX6DL_PAD_SD2_CMD__AUDMUX_AUD4_RXC,		/* unused */
+	MX6DL_PAD_SD2_CLK__AUDMUX_AUD4_RXFS,	/* unused */
+	MX6DL_PAD_SD2_DAT0__AUDMUX_AUD4_RXD,
+	MX6DL_PAD_SD2_DAT1__AUDMUX_AUD4_TXFS,
+	MX6DL_PAD_SD2_DAT2__AUDMUX_AUD4_TXD,
+	MX6DL_PAD_SD2_DAT3__AUDMUX_AUD4_TXC,
+};
+
 #define CM_FX6_DL_USDHC_PAD_SETTING(id, speed)	\
 cm_fx6_dl_sd##id##_##speed##mhz[] = {		\
 	MX6DL_PAD_SD##id##_CLK__USDHC##id##_CLK_##speed##MHZ,	\
