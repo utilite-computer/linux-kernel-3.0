@@ -107,7 +107,7 @@ static struct scf0403_cmd scf0403_cmd_slpin	= {0x10, NULL, 0};
 static struct scf0403_cmd scf0403_cmd_disoff	= {0x28, NULL, 0};
 
 /* SCF0403852GGU04 init sequence */
-static struct scf0403_initseq_entry scf0403_initseq_entry_sn04[] = {
+static struct scf0403_initseq_entry scf0403_initseq_sn04[] = {
 	{{0x36, memaccess_params_sn04,	ARRAY_SIZE(memaccess_params_sn04)}, 0},
 	{{0x3A, pixfmt_params_sn04,	ARRAY_SIZE(pixfmt_params_sn04)}, 0},
 	{{0xB6, dispfunc_params_sn04,	ARRAY_SIZE(dispfunc_params_sn04)}, 0},
@@ -119,7 +119,7 @@ static struct scf0403_initseq_entry scf0403_initseq_entry_sn04[] = {
 };
 
 /* SCF0403526GGU20 init sequence */
-static struct scf0403_initseq_entry scf0403_initseq_entry_sn20[] = {
+static struct scf0403_initseq_entry scf0403_initseq_sn20[] = {
 	{{0xff, extcmd_params_sn20,	ARRAY_SIZE(extcmd_params_sn20)}, 0},
 	{{0xba, spiinttype_params_sn20,	ARRAY_SIZE(spiinttype_params_sn20)}, 0},
 	{{0xbc, bc_params_sn20,		ARRAY_SIZE(bc_params_sn20)}, 0},
@@ -371,11 +371,11 @@ static int __devinit scf0403_probe(struct spi_device *spi)
 	dev_info(&spi->dev, "Device ID: 0x%06X\n", priv->rddid);
 
 	if (priv->rddid == SCF0403852GGU04_ID) {
-		priv->init_seq = scf0403_initseq_entry_sn04;
-		priv->seq_size = ARRAY_SIZE(scf0403_initseq_entry_sn04);
+		priv->init_seq = scf0403_initseq_sn04;
+		priv->seq_size = ARRAY_SIZE(scf0403_initseq_sn04);
 	} else {
-		priv->init_seq = scf0403_initseq_entry_sn20;
-		priv->seq_size = ARRAY_SIZE(scf0403_initseq_entry_sn20);
+		priv->init_seq = scf0403_initseq_sn20;
+		priv->seq_size = ARRAY_SIZE(scf0403_initseq_sn20);
 	}
 
 	priv->ld = lcd_device_register("scf0403", &spi->dev, priv, &l4f_ops);
