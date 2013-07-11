@@ -14,6 +14,7 @@ obj-$(CONFIG_E1000) += e1000/
 obj-$(CONFIG_E1000E) += e1000e/
 obj-$(CONFIG_IBM_NEW_EMAC) += ibm_newemac/
 obj-$(CONFIG_IGB) += igb/
+obj-y += igb/igb_platform_data.o
 obj-$(CONFIG_IGBVF) += igbvf/
 obj-$(CONFIG_IXGBE) += ixgbe/
 obj-$(CONFIG_IXGBEVF) += ixgbevf/

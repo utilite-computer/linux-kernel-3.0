@@ -50,6 +50,7 @@
 #include <linux/pm_runtime.h>
 #endif /* CONFIG_PM_RUNTIME */
 
+#include <linux/igb.h>
 #include "igb.h"
 #include "igb_vmdq.h"
 
@@ -2177,18 +2178,21 @@ static int __devinit igb_probe(struct pci_dev *pdev,
 	/* copy the MAC address out of the NVM */
 	if (e1000_read_mac_addr(hw))
 		dev_err(pci_dev_to_dev(pdev), "NVM Read Error\n");
+
+	if (!is_valid_ether_addr(hw->mac.addr)) {
+		struct igb_platform_data *igb_pdata = igb_get_platform_data();
+		memcpy(hw->mac.addr, igb_pdata->mac_address, ETH_ALEN);
+		if (!is_valid_ether_addr(hw->mac.addr)) {
+			dev_err(pci_dev_to_dev(pdev), "Invalid MAC Address\n");
+			err = -EIO;
+			goto err_eeprom;
+		}
+	}
+
 	memcpy(netdev->dev_addr, hw->mac.addr, netdev->addr_len);
 #ifdef ETHTOOL_GPERMADDR
 	memcpy(netdev->perm_addr, hw->mac.addr, netdev->addr_len);
-
-	if (!is_valid_ether_addr(netdev->perm_addr)) {
-#else
-	if (!is_valid_ether_addr(netdev->dev_addr)) {
 #endif
-		dev_err(pci_dev_to_dev(pdev), "Invalid MAC Address\n");
-		err = -EIO;
-		goto err_eeprom;
-	}
 
 	memcpy(&adapter->mac_table[0].addr, hw->mac.addr, netdev->addr_len);
 	adapter->mac_table[0].queue = adapter->vfs_allocated_count;
