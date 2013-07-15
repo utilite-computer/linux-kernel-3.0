@@ -724,18 +724,18 @@ config TOUCHSCREEN_PCAP
 	  To compile this driver as a module, choose M here: the
 	  module will be called pcap_ts.
 
-config TOUCHSCREEN_HX8520_C
-	tristate "HX8520-C touchscreen support"
+config TOUCHSCREEN_HIMAX
+	tristate "Himax touchscreen support"
 	depends on I2C
 	help
-	  Say Y here if you have a touchscreen HX8520-C and your
+	  Say Y here if you have a Himax touchscreen and your
 	  board-specific setup code includes that in its table
 	  of I2C devices.
 
 	  If unsure, say N.
 
 	  To compile this driver as a module, choose M here: the
-	  module will be called hx8520-c.
+	  module will be called himax_ts.
 
 config TOUCHSCREEN_ST1232
 	tristate "Sitronix ST1232 touchscreen controllers"
