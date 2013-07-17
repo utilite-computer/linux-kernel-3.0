@@ -1122,6 +1122,12 @@ static struct ipuv3_fb_platform_data cm_fx6_fb_data[] = {
 		.mode_str          = "1366x768M-18@60",
 		.default_bpp       = 18,
 		.int_clk           = false,
+	}, {
+		.disp_dev          = "ldb",
+		.interface_pix_fmt = IPU_PIX_FMT_RGB666,
+		.mode_str          = "1280x800M-18@60",
+		.default_bpp       = 18,
+		.int_clk           = false,
 	}
 };
 
@@ -1135,7 +1141,18 @@ static struct fsl_mxc_ldb_platform_data cm_fx6_ldb_data = {
 	.ipu_id      = 1,
 	.disp_id     = 0,
 	.ext_ref     = 1,
-	.mode        = LDB_SIN0,
+	.mode        = LDB_SEP0,
+	.sec_ipu_id  = 1,
+	.sec_disp_id = 1,
+};
+
+static struct fsl_mxc_ldb_platform_data cm_fx6_ldb_data1 = {
+	.ipu_id      = 1,
+	.disp_id     = 1,
+	.ext_ref     = 1,
+	.mode        = LDB_SEP1,
+	.sec_ipu_id  = 1,
+	.sec_disp_id = 0,
 };
 
 static struct imx_ipuv3_platform_data ipu_data[] = {
@@ -1191,6 +1208,10 @@ static void __init cm_fx6_init_display(void)
 		pr_err("%s: ldb interface register failed: %ld\n",
 			__func__, PTR_ERR(pdev));
 
+	pdev = imx6q_add_ldb(1, &cm_fx6_ldb_data1);
+	if (IS_ERR(pdev))
+		pr_err("%s: ldb1 interface register failed: %ld\n",
+			__func__, PTR_ERR(pdev));
 }
 #else /* CONFIG_FB_MXC_SYNC_PANEL */
 static inline void cm_fx6_init_display(void) {}
