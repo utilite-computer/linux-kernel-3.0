@@ -136,7 +136,7 @@ static void det_worker(struct work_struct *work)
 		else {
 			if (!memcmp(edid_old, dvi->edid, MXC_EDID_LENGTH))
 				dev_info(&dvi->client->dev,
-					"Sii902x: same edid\n");
+					"MXC dvi: same edid\n");
 			else if (dvi->fbi->monspecs.modedb_len > 0) {
 				int i;
 				const struct fb_videomode *mode;
