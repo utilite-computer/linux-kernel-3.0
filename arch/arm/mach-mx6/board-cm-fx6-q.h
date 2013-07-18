@@ -166,6 +166,10 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	/* Wlan */
 	MX6Q_PAD_GPIO_17__GPIO_7_12,   /* WIFI NPD */
 	MX6Q_PAD_NANDF_CS3__GPIO_6_16, /* WIFI NRESET */
+
+	/* DVI: EDID */
+	MX6Q_PAD_GPIO_2__GPIO_1_2,	/* utilite DVI_DDC_SEL */
+	MX6Q_PAD_GPIO_4__GPIO_1_4,	/* utilite DVI_HPD */
 };
 
 static iomux_v3_cfg_t cm_fx6_q_spdif_pads[] = {

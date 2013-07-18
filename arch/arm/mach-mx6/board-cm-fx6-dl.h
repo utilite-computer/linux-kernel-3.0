@@ -153,6 +153,10 @@ static iomux_v3_cfg_t cm_fx6_dl_pads[] = {
 	/* USBOTG: PWR, ID */
 	MX6DL_PAD_EIM_D22__GPIO_3_22,
 	MX6DL_PAD_ENET_RX_ER__ANATOP_USBOTG_ID,
+
+	/* DVI: EDID */
+	MX6DL_PAD_GPIO_2__GPIO_1_2,	/* utilite DVI_DDC_SEL */
+	MX6DL_PAD_GPIO_4__GPIO_1_4,	/* utilite DVI_HPD */
 };
 
 static iomux_v3_cfg_t cm_fx6_dl_spdif_pads[] = {

@@ -56,6 +56,7 @@
 #include <linux/mxc_asrc.h>
 #include <linux/mfd/mxc-hdmi-core.h>
 #include <linux/igb.h>
+#include <linux/gpio-i2cmux.h>
 
 #include <mach/common.h>
 #include <mach/hardware.h>
@@ -116,6 +117,11 @@
 #define MX6_ARM2_CAN2_EN		IMX_GPIO_NR(5, 24)
 #define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
 #define MX6_ARM2_CAN1_EN		IMX_GPIO_NR(7, 13)
+
+#define SB_FX6_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
+#define SB_FX6_DVI_HPD			IMX_GPIO_NR(1, 4)
+
+#define SB_FX6M
 
 static int spdif_en;
 static int flexcan_en;
@@ -219,10 +225,17 @@ static const struct esdhc_platform_data cm_fx6_sd1_data __initconst = {
 static const struct esdhc_platform_data cm_fx6_sd3_data = {
 	.cd_type		= ESDHC_CD_GPIO,
 	.cd_gpio		= SB_FX6_SD3_CD,
+#ifdef SB_FX6M
+	.wp_gpio		= -1,
+#else
 	.wp_gpio		= SB_FX6_SD3_WP,
+#endif
 	.keep_power_at_suspend	= 1,
 	.delay_line		= 0,
 	.platform_pad_change	= plt_sd_pad_change,
+#ifdef SB_FX6M
+	.always_present = 1,
+#endif
 };
 
 #if defined(CONFIG_MTD_NAND_GPMI_NAND)
@@ -564,20 +577,45 @@ static struct at24_platform_data sb_fx6_eeprom_pdata = {
 #endif
 
 #if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
+#ifdef SB_FX6M
+static void cm_fx6_dvi_init(void)
+{
+	int err = gpio_request(SB_FX6_DVI_HPD, "dvi detect");
+	if (err) {
+		pr_info("%s > error %d\n",__func__,err);
+	}
+
+	gpio_direction_input(SB_FX6_DVI_HPD);
+}
+#endif
+
 static int cm_fx6_dvi_update(void)
 {
+#ifdef SB_FX6M
+	int value = gpio_get_value(SB_FX6_DVI_HPD);
+	pr_info("DVI display: %s \n", (value ? "attach" : "detach"));
+	return value;
+#else
 	/* sb-fx6 - always connected */
 	return 1;
+#endif
 }
 
 static struct fsl_mxc_dvi_platform_data cm_fx6_dvi_data = {
 	.ipu_id		= 0,
 	.disp_id	= 0,
+#ifdef SB_FX6M
+	.init		= cm_fx6_dvi_init,
+#endif
 	.update		= cm_fx6_dvi_update,
 };
 #endif /* CONFIG_FB_MXC_EDID */
 
+#ifdef SB_FX6M
+static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
+#else
 static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
+#endif
 #if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
 	{
 		I2C_BOARD_INFO("pca9555", 0x26),
@@ -599,19 +637,62 @@ static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
 #endif
 };
 
+#ifdef SB_FX6M
+static struct i2c_board_info cm_fx6_i2c0c4_board_info[] __initdata = {
+#ifdef CONFIG_FB_MXC_EDID
+	{
+		I2C_BOARD_INFO("mxc_dvi", 0x50),
+		.irq = gpio_to_irq(SB_FX6_DVI_HPD),
+		.platform_data = &cm_fx6_dvi_data,
+	},
+#endif
+};
+#endif
+
 static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 #if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
 	{
 		I2C_BOARD_INFO("mxc_hdmi_i2c", 0x50),
 	},
 #endif
+#ifndef SB_FX6M
 #if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
-	{	/* 0x7f - fake address, as sb-fx6 does not support DVI DDC */
-		I2C_BOARD_INFO("mxc_dvi", 0x7f),
-		.platform_data = &cm_fx6_dvi_data,
-	},
+{       /* 0x7f - fake address, as sb-fx6 does not support DVI DDC */
+	I2C_BOARD_INFO("mxc_dvi", 0x7f),
+	.platform_data = &cm_fx6_dvi_data,
+}
+#endif
 #endif
 };
+
+#ifdef SB_FX6M
+static const unsigned sb_fx6m_i2cmux_gpios[] = {
+	SB_FX6_DVI_DDC_SEL
+};
+
+static const unsigned sb_fx6m_i2cmux_values[] = {
+	0, 1
+};
+
+static struct gpio_i2cmux_platform_data sb_fx6m_i2cmux_data = {
+	.parent		= 0,	/* multiplex I2C-0 */
+	.base_nr	= 3,	/* create I2C-3+ */
+	.gpios		= sb_fx6m_i2cmux_gpios,
+	.n_gpios	= ARRAY_SIZE(sb_fx6m_i2cmux_gpios),
+	.values		= sb_fx6m_i2cmux_values,
+	.n_values	= ARRAY_SIZE(sb_fx6m_i2cmux_values),
+	.idle		= GPIO_I2CMUX_NO_IDLE,
+};
+
+
+static struct platform_device sb_fx6m_i2cmux = {
+	.name	= "gpio-i2cmux",
+	.id		= -1,
+	.dev	= {
+		.platform_data = &sb_fx6m_i2cmux_data,
+	},
+};
+#endif
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
 #define EEPROM_1ST_MAC_OFF		4
@@ -845,26 +926,52 @@ static void __init i2c_register_bus_binfo(int busnum,
 	int err;
 	struct platform_device * pdev;
 
-	pdev = imx6q_add_imx_i2c(busnum, i2cdata);
-	if (IS_ERR(pdev))
-		pr_err("%s: I2C bus %d register failed: %ld\n",
-		       __func__, busnum, PTR_ERR(pdev));
+	if (i2cdata) {
+		pdev = imx6q_add_imx_i2c(busnum, i2cdata);
+		if (IS_ERR(pdev))
+			pr_err("%s: I2C bus %d register failed: %ld\n",
+				   __func__, busnum, PTR_ERR(pdev));
+	}
 
-	err = i2c_register_board_info(busnum, info, info_size);
-	if (err)
-		pr_err("%s: I2C bus %d board info register failed: %d\n",
-		       __func__, busnum, err);
+	if (info) {
+		err = i2c_register_board_info(busnum, info, info_size);
+		if (err)
+			pr_err("%s: I2C bus %d board info register failed: %d\n",
+				   __func__, busnum, err);
+	}
 }
 
 static void __init cm_fx6_i2c_init(void)
 {
+#ifdef SB_FX6M
+	/* register the physical bus 0 w/o any devices */
+	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL,
+				   0);
+#else
 	hx8520_c_init();
 	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, cm_fx6_i2c0_board_info,
-			       ARRAY_SIZE(cm_fx6_i2c0_board_info));
+						   ARRAY_SIZE(cm_fx6_i2c0_board_info));
+
+	/* register the physical bus 0 w/o any devices */
+	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL,
+			       0);
+#endif
 	i2c_register_bus_binfo(1, &cm_fx6_i2c1_data, cm_fx6_i2c1_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c1_board_info));
 	i2c_register_bus_binfo(2, &cm_fx6_i2c2_data, cm_fx6_i2c2_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c2_board_info));
+
+#ifdef SB_FX6M
+	/* I2C multiplexing: I2C-0 --> I2C-3, I2C-4 */
+	platform_device_register(&sb_fx6m_i2cmux);
+
+	/* register the virtual bus 3 */
+	i2c_register_bus_binfo(3, NULL, cm_fx6_i2c0c3_board_info,
+				ARRAY_SIZE(cm_fx6_i2c0c3_board_info));
+	/* register the virtual bus 4 */
+	i2c_register_bus_binfo(4, NULL, cm_fx6_i2c0c4_board_info,
+				ARRAY_SIZE(cm_fx6_i2c0c4_board_info));
+#endif
 }
 #else /* CONFIG_I2C_IMX */
 static inline void cm_fx6_i2c_init(void) {}
@@ -1080,8 +1187,13 @@ static struct fsl_mxc_hdmi_platform_data cm_fx6_hdmi_data = {
 };
 
 static struct fsl_mxc_hdmi_core_platform_data cm_fx6_hdmi_core_data = {
+#ifdef SB_FX6M
+	.ipu_id		= 1,
+	.disp_id	= 0,
+#else
 	.ipu_id		= 0,
 	.disp_id	= 1,
+#endif
 };
 
 static void __init cm_fx6_init_hdmi(void)
@@ -1099,6 +1211,7 @@ static void __init cm_fx6_init_hdmi(void)
 	if (IS_ERR(pdev))
 		pr_err("%s: HDMI register failed: %ld\n",
 		       __func__, PTR_ERR(pdev));
+
 }
 #else /* CONFIG_FB_MXC_HDMI */
 static inline void cm_fx6_init_hdmi(void) {}
@@ -1130,6 +1243,7 @@ static struct ipuv3_fb_platform_data cm_fx6_fb_data[] = {
 		.int_clk           = false,
 	}
 };
+
 
 static struct fsl_mxc_lcd_platform_data cm_fx6_lcdif_data = {
 	.ipu_id		= 0,
@@ -1165,12 +1279,9 @@ static struct imx_ipuv3_platform_data ipu_data[] = {
 	},
 };
 
-static void __init cm_fx6_init_display(void)
+static void __init cm_fx6_init_ipu(void)
 {
-	int i;
 	struct platform_device * pdev;
-
-	cm_fx6_init_hdmi();
 
 	pdev = imx6q_add_ipuv3(0, &ipu_data[0]);
 	if (IS_ERR(pdev)) {
@@ -1181,10 +1292,18 @@ static void __init cm_fx6_init_display(void)
 
 	if (cpu_is_mx6q()) {
 		pdev = imx6q_add_ipuv3(1, &ipu_data[1]);
-		if (IS_ERR(pdev))
+		if (IS_ERR(pdev)) {
 			pr_err("%s: IPU 1 register failed: %ld\n",
-			       __func__, PTR_ERR(pdev));
+				   __func__, PTR_ERR(pdev));
+		return;
+		}
 	}
+}
+
+static int __init cm_fx6_init_display(void)
+{
+	int i;
+	struct platform_device * pdev;
 
 	for (i = 0; i < ARRAY_SIZE(cm_fx6_fb_data); i++) {
 		pdev = imx6q_add_ipuv3fb(i, &cm_fx6_fb_data[i]);
@@ -1212,7 +1331,13 @@ static void __init cm_fx6_init_display(void)
 	if (IS_ERR(pdev))
 		pr_err("%s: ldb1 interface register failed: %ld\n",
 			__func__, PTR_ERR(pdev));
+
+	return 0;
 }
+#ifdef SB_FX6M
+device_initcall_sync(cm_fx6_init_display);
+#endif
+
 #else /* CONFIG_FB_MXC_SYNC_PANEL */
 static inline void cm_fx6_init_display(void) {}
 #endif /* CONFIG_FB_MXC_SYNC_PANEL */
@@ -1569,7 +1694,12 @@ static void __init cm_fx6_init(void)
 	pu_reg_id = arm2_dvfscore_data.pu_id;
 	cm_fx6_init_uart();
 
+
+	cm_fx6_init_ipu();
+	cm_fx6_init_hdmi();
+#ifndef SB_FX6M
 	cm_fx6_init_display();
+#endif
 
 	imx6q_add_imx_snvs_rtc();
 
