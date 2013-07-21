@@ -737,13 +737,13 @@ static struct platform_driver mxc_hdmi_core_driver = {
 		.name = "mxc_hdmi_core",
 		.owner = THIS_MODULE,
 	},
+	.probe = mxc_hdmi_core_probe,
 	.remove = __exit_p(mxc_hdmi_core_remove),
 };
 
 static int __init mxc_hdmi_core_init(void)
 {
-	return platform_driver_probe(&mxc_hdmi_core_driver,
-				     mxc_hdmi_core_probe);
+	return platform_driver_register(&mxc_hdmi_core_driver);
 }
 
 static void __exit mxc_hdmi_core_exit(void)
@@ -751,7 +751,7 @@ static void __exit mxc_hdmi_core_exit(void)
 	platform_driver_unregister(&mxc_hdmi_core_driver);
 }
 
-subsys_initcall(mxc_hdmi_core_init);
+module_init(mxc_hdmi_core_init);
 module_exit(mxc_hdmi_core_exit);
 
 MODULE_DESCRIPTION("Core driver for Freescale i.Mx on-chip HDMI");
