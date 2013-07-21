@@ -121,7 +121,8 @@
 #define SB_FX6_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
 #define SB_FX6_DVI_HPD			IMX_GPIO_NR(1, 4)
 
-#define SB_FX6M
+#define SB_FX6M_PRODUCT_NAME	"SB-FX6m"
+#define SB_FX6M_PRODUCT_NAME_LEN 7
 
 static int spdif_en;
 static int flexcan_en;
@@ -222,20 +223,14 @@ static const struct esdhc_platform_data cm_fx6_sd1_data __initconst = {
 	.platform_pad_change	= plt_sd_pad_change,
 };
 
-static const struct esdhc_platform_data cm_fx6_sd3_data = {
+static struct esdhc_platform_data cm_fx6_sd3_data = {
 	.cd_type		= ESDHC_CD_GPIO,
 	.cd_gpio		= SB_FX6_SD3_CD,
-#ifdef SB_FX6M
 	.wp_gpio		= -1,
-#else
-	.wp_gpio		= SB_FX6_SD3_WP,
-#endif
 	.keep_power_at_suspend	= 1,
 	.delay_line		= 0,
 	.platform_pad_change	= plt_sd_pad_change,
-#ifdef SB_FX6M
 	.always_present = 1,
-#endif
 };
 
 #if defined(CONFIG_MTD_NAND_GPMI_NAND)
@@ -570,14 +565,16 @@ static inline void hx8520_c_init(void) {}
 #endif /* CONFIG_TOUCHSCREEN_HX8520_C */
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
+void sb_fx6_eeprom_setup(struct memory_accessor *memory_accessor, void *context);
+
 static struct at24_platform_data sb_fx6_eeprom_pdata = {
         .byte_len       = 256,
         .page_size      = 16,
+		.setup			= sb_fx6_eeprom_setup,
 };
 #endif
 
 #if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
-#ifdef SB_FX6M
 static void cm_fx6_dvi_init(void)
 {
 	int err = gpio_request(SB_FX6_DVI_HPD, "dvi detect");
@@ -587,35 +584,29 @@ static void cm_fx6_dvi_init(void)
 
 	gpio_direction_input(SB_FX6_DVI_HPD);
 }
-#endif
 
 static int cm_fx6_dvi_update(void)
 {
-#ifdef SB_FX6M
+	/* sb-fx6 - always connected */
+	return 1;
+}
+
+static int sb_fx6m_dvi_update(void)
+{
 	int value = gpio_get_value(SB_FX6_DVI_HPD);
 	pr_info("DVI display: %s \n", (value ? "attach" : "detach"));
 	return value;
-#else
-	/* sb-fx6 - always connected */
-	return 1;
-#endif
 }
 
 static struct fsl_mxc_dvi_platform_data cm_fx6_dvi_data = {
 	.ipu_id		= 0,
 	.disp_id	= 0,
-#ifdef SB_FX6M
 	.init		= cm_fx6_dvi_init,
-#endif
-	.update		= cm_fx6_dvi_update,
+	.update		= sb_fx6m_dvi_update,
 };
 #endif /* CONFIG_FB_MXC_EDID */
 
-#ifdef SB_FX6M
 static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
-#else
-static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
-#endif
 #if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
 	{
 		I2C_BOARD_INFO("pca9555", 0x26),
@@ -637,7 +628,6 @@ static struct i2c_board_info cm_fx6_i2c0_board_info[] __initdata = {
 #endif
 };
 
-#ifdef SB_FX6M
 static struct i2c_board_info cm_fx6_i2c0c4_board_info[] __initdata = {
 #ifdef CONFIG_FB_MXC_EDID
 	{
@@ -647,7 +637,6 @@ static struct i2c_board_info cm_fx6_i2c0c4_board_info[] __initdata = {
 	},
 #endif
 };
-#endif
 
 static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 #if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
@@ -655,17 +644,9 @@ static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 		I2C_BOARD_INFO("mxc_hdmi_i2c", 0x50),
 	},
 #endif
-#ifndef SB_FX6M
-#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
-{       /* 0x7f - fake address, as sb-fx6 does not support DVI DDC */
-	I2C_BOARD_INFO("mxc_dvi", 0x7f),
-	.platform_data = &cm_fx6_dvi_data,
-}
-#endif
 #endif
 };
 
-#ifdef SB_FX6M
 static const unsigned sb_fx6m_i2cmux_gpios[] = {
 	SB_FX6_DVI_DDC_SEL
 };
@@ -692,10 +673,15 @@ static struct platform_device sb_fx6m_i2cmux = {
 		.platform_data = &sb_fx6m_i2cmux_data,
 	},
 };
-#endif
+
+static struct igb_platform_data cm_fx6_igb_pdata = {
+	.mac_address = {0x00 , 0xA0 , 0xC9, 0x65, 0x43, 0x21},
+};
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
 #define EEPROM_1ST_MAC_OFF		4
+#define EEPROM_PRODUCT_NAME_OFF	128
+#define EEPROM_PRODUCT_NAME_LEN	16
 
 static int eeprom_read(struct memory_accessor *mem_acc, unsigned char *buf,
 		       int offset, int size, const char* objname)
@@ -720,10 +706,51 @@ static void eeprom_read_mac_address(struct memory_accessor *mem_acc,
 		memset(mac, 0, ETH_ALEN);
 }
 
+static void eeprom_read_product_name(struct memory_accessor *mem_acc,
+				    unsigned char *product_name)
+{
+	char objname[EEPROM_PRODUCT_NAME_LEN] = {0};
+
+	if (eeprom_read(mem_acc, product_name, EEPROM_PRODUCT_NAME_OFF, EEPROM_PRODUCT_NAME_LEN, objname))
+		memset(product_name, 0, EEPROM_PRODUCT_NAME_LEN);
+}
+
 static void cm_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
 {
 	eeprom_read_mac_address(mem_acc, cm_fx6_fec_data.mac);
 	imx6_init_fec(cm_fx6_fec_data);
+}
+
+static void sb_fx6_board_fixup(void) {
+	/* this is an evaluation board */
+	cm_fx6_sd3_data.wp_gpio = SB_FX6_SD3_WP;
+	cm_fx6_sd3_data.always_present = 0;
+
+	cm_fx6_dvi_data.init   = NULL;
+	cm_fx6_dvi_data.update = cm_fx6_dvi_update;
+}
+
+static const struct imx_pcie_platform_data cm_fx6_pcie_data  __initconst = {
+	.pcie_pwr_en	= SB_FX6_PCIE_MUX_PWR,
+	.pcie_rst	= SB_FX6_ETH_RST,
+	.pcie_wake_up	= -EINVAL,
+	.pcie_dis	= -EINVAL,
+};
+
+void sb_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
+{
+	char product_name[EEPROM_PRODUCT_NAME_LEN] = {0};
+	eeprom_read_product_name(mem_acc,product_name);
+	if (strncmp(product_name,SB_FX6M_PRODUCT_NAME,SB_FX6M_PRODUCT_NAME_LEN)==0) {
+		printk("%s > product_name { %s } reading mac\n",__func__,product_name);
+		eeprom_read_mac_address(mem_acc, cm_fx6_igb_pdata.mac_address);
+		igb_set_platform_data(&cm_fx6_igb_pdata);
+	} else {
+		printk("%s > product_name { %s } calling fixup\n",__func__,product_name);
+		sb_fx6_board_fixup();
+	}
+	/* Add PCIe RC interface support */
+	imx6q_add_pcie(&cm_fx6_pcie_data);
 }
 
 static struct at24_platform_data cm_fx6_eeprom_pdata = {
@@ -941,27 +968,22 @@ static void __init i2c_register_bus_binfo(int busnum,
 	}
 }
 
+#ifdef CONFIG_I2C_IMX
 static void __init cm_fx6_i2c_init(void)
 {
-#ifdef SB_FX6M
-	/* register the physical bus 0 w/o any devices */
-	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL,
-				   0);
-#else
+#if defined(CONFIG_TOUCHSCREEN_HX8520_C) || defined(CONFIG_TOUCHSCREEN_HX8520_C_MODULE)
 	hx8520_c_init();
-	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, cm_fx6_i2c0_board_info,
-						   ARRAY_SIZE(cm_fx6_i2c0_board_info));
+#endif
 
 	/* register the physical bus 0 w/o any devices */
 	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL,
-			       0);
-#endif
+				   0);
+
 	i2c_register_bus_binfo(1, &cm_fx6_i2c1_data, cm_fx6_i2c1_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c1_board_info));
 	i2c_register_bus_binfo(2, &cm_fx6_i2c2_data, cm_fx6_i2c2_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c2_board_info));
 
-#ifdef SB_FX6M
 	/* I2C multiplexing: I2C-0 --> I2C-3, I2C-4 */
 	platform_device_register(&sb_fx6m_i2cmux);
 
@@ -971,7 +993,7 @@ static void __init cm_fx6_i2c_init(void)
 	/* register the virtual bus 4 */
 	i2c_register_bus_binfo(4, NULL, cm_fx6_i2c0c4_board_info,
 				ARRAY_SIZE(cm_fx6_i2c0c4_board_info));
-#endif
+
 }
 #else /* CONFIG_I2C_IMX */
 static inline void cm_fx6_i2c_init(void) {}
@@ -1187,13 +1209,13 @@ static struct fsl_mxc_hdmi_platform_data cm_fx6_hdmi_data = {
 };
 
 static struct fsl_mxc_hdmi_core_platform_data cm_fx6_hdmi_core_data = {
-#ifdef SB_FX6M
-	.ipu_id		= 1,
-	.disp_id	= 0,
-#else
 	.ipu_id		= 0,
 	.disp_id	= 1,
-#endif
+};
+
+static struct platform_device mxc_hdmi_audio_device = {
+	.name           = "mxc_hdmi_audio",
+	.id             = -1,
 };
 
 static void __init cm_fx6_init_hdmi(void)
@@ -1213,6 +1235,7 @@ static void __init cm_fx6_init_hdmi(void)
 		       __func__, PTR_ERR(pdev));
 
 }
+
 #else /* CONFIG_FB_MXC_HDMI */
 static inline void cm_fx6_init_hdmi(void) {}
 #endif /* CONFIG_FB_MXC_HDMI */
@@ -1305,13 +1328,6 @@ static int __init cm_fx6_init_display(void)
 	int i;
 	struct platform_device * pdev;
 
-	for (i = 0; i < ARRAY_SIZE(cm_fx6_fb_data); i++) {
-		pdev = imx6q_add_ipuv3fb(i, &cm_fx6_fb_data[i]);
-		if (IS_ERR(pdev))
-			pr_err("%s: fb%d register failed: %ld\n",
-			       __func__, i, PTR_ERR(pdev));
-	}
-
 	pdev = imx6q_add_vdoa();
 	if (IS_ERR(pdev))
 		pr_err("%s: VDOA register failed: %ld\n",
@@ -1332,12 +1348,16 @@ static int __init cm_fx6_init_display(void)
 		pr_err("%s: ldb1 interface register failed: %ld\n",
 			__func__, PTR_ERR(pdev));
 
+
+	for (i = 0; i < ARRAY_SIZE(cm_fx6_fb_data); i++) {
+		pdev = imx6q_add_ipuv3fb(i, &cm_fx6_fb_data[i]);
+		if (IS_ERR(pdev))
+			pr_err("%s: fb%d register failed: %ld\n",
+				   __func__, i, PTR_ERR(pdev));
+	}
+
 	return 0;
 }
-#ifdef SB_FX6M
-device_initcall_sync(cm_fx6_init_display);
-#endif
-
 #else /* CONFIG_FB_MXC_SYNC_PANEL */
 static inline void cm_fx6_init_display(void) {}
 #endif /* CONFIG_FB_MXC_SYNC_PANEL */
@@ -1526,13 +1546,6 @@ static struct mxc_spdif_platform_data mxc_spdif_data = {
 	.spdif_clk		= NULL, /* spdif bus clk */
 };
 
-static const struct imx_pcie_platform_data mx6_arm2_pcie_data  __initconst = {
-	.pcie_pwr_en	= SB_FX6_PCIE_MUX_PWR,
-	.pcie_rst	= SB_FX6_ETH_RST,
-	.pcie_wake_up	= -EINVAL,
-	.pcie_dis	= -EINVAL,
-};
-
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 static struct gpio_led cm_fx6_leds[] = {
 	[0] = {
@@ -1554,10 +1567,6 @@ static struct platform_device cm_fx6_led_device = {
 	.dev	= {
 		.platform_data = &cm_fx6_led_pdata,
 	},
-};
-
-static struct igb_platform_data cm_fx6_igb_pdata = {
-	.mac_address = {0x00 , 0xA0 , 0xC9, 0x12, 0x34, 0x56},
 };
 
 static void __init cm_fx6_init_led(void)
@@ -1584,6 +1593,9 @@ static void __init cm_fx6_init_hdmi_audio(void)
 	if (IS_ERR(pdev))
 		pr_err("%s: HDMI SOC DAI registration failed: %ld\n",
 		       __func__, PTR_ERR(pdev));
+
+	platform_device_register(&mxc_hdmi_audio_device);
+
 }
 #else /* CONFIG_SND_SOC_IMX_HDMI */
 static inline void cm_fx6_init_hdmi_audio(void) {}
@@ -1609,11 +1621,6 @@ static void cm_fx6_init_wifi(void)
 
 	gpio_export(CM_FX6_WIFI_NPD, 0);
 	gpio_export(CM_FX6_WIFI_NRESET, 0);
-}
-
-static void cm_fx6_init_lan(void)
-{
-	igb_set_platform_data(&cm_fx6_igb_pdata);
 }
 
 static struct imx_asrc_platform_data imx_asrc_data = {
@@ -1694,20 +1701,13 @@ static void __init cm_fx6_init(void)
 	pu_reg_id = arm2_dvfscore_data.pu_id;
 	cm_fx6_init_uart();
 
-
 	cm_fx6_init_ipu();
-	cm_fx6_init_hdmi();
-#ifndef SB_FX6M
-	cm_fx6_init_display();
-#endif
 
 	imx6q_add_imx_snvs_rtc();
-
 	imx6q_add_imx_caam();
 
 	cm_fx6_i2c_init();
 	cm_fx6_init_led();
-	cm_fx6_init_lan();
 	cm_fx6_init_wifi();
 	cm_fx6_spi_init();
 
@@ -1757,20 +1757,25 @@ static void __init cm_fx6_init(void)
 		}
 	}
 
-	cm_fx6_init_hdmi_audio();
-
 	imx6q_add_perfmon(0);
 	imx6q_add_perfmon(1);
 	imx6q_add_perfmon(2);
 	imx6q_add_mlb150(&mx6_arm2_mlb150_data);
 
-	/* Add PCIe RC interface support */
-	imx6q_add_pcie(&mx6_arm2_pcie_data);
 	imx6q_add_busfreq();
 
 	/* Audio */
 	cm_fx6_init_audio();
 }
+
+static int __init cm_fx6_init_late(void)
+{
+	cm_fx6_init_hdmi();
+	cm_fx6_init_display();
+	cm_fx6_init_hdmi_audio();
+	return 0;
+}
+device_initcall_sync(cm_fx6_init_late);
 
 extern void __iomem *twd_base;
 static void __init cm_fx6_timer_init(void)
