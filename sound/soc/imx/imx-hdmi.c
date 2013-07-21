@@ -21,6 +21,8 @@
 #include <linux/platform_device.h>
 #include <linux/clk.h>
 #include <linux/io.h>
+#include <linux/delay.h>
+
 
 #include <sound/core.h>
 #include <sound/pcm.h>
@@ -53,12 +55,12 @@ static struct snd_soc_card snd_soc_card_imx_hdmi = {
 
 static struct platform_device *imx_hdmi_snd_device;
 
-static int __init imx_hdmi_init(void)
+static int mxc_hdmi_audio_probe(struct platform_device *pdev)
 {
 	int ret = 0;
 
 	if (!hdmi_get_registered()) {
-		pr_err("Initialize HDMI-audio failed. Load HDMI-video first!\n");
+		pr_err("Initialize HDMI-audio failed1. Load HDMI-video first!\n");
 		return -ENODEV;
 	}
 
@@ -79,9 +81,30 @@ static int __init imx_hdmi_init(void)
 	return ret;
 }
 
-static void __exit imx_hdmi_exit(void)
+static int __exit mxc_hdmi_audio_remove(struct platform_device *pdev)
 {
 	platform_device_unregister(imx_hdmi_snd_device);
+	return 0;
+}
+
+static struct platform_driver mxc_hdmi_audio_driver = {
+	.driver = {
+		.name = "mxc_hdmi_audio",
+		.owner = THIS_MODULE,
+	},
+	.probe = mxc_hdmi_audio_probe,
+	.remove = __exit_p(mxc_hdmi_audio_remove),
+};
+
+static int imx_hdmi_init(void)
+{
+	return platform_driver_register(&mxc_hdmi_audio_driver);
+}
+
+
+static void imx_hdmi_exit(void)
+{
+	platform_driver_unregister(&mxc_hdmi_audio_driver);
 }
 
 module_init(imx_hdmi_init);
