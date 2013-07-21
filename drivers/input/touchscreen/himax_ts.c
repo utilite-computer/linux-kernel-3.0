@@ -257,7 +257,7 @@ static int himax_ts_open(struct input_dev *dev)
 	struct i2c_client *client = priv->client;
 
 	if (i2c_master_send(client, hx85x_senseon_cmd, 1) != 1) {
-		dev_err(&priv->client->dev, "failed to write sense on command\n");
+		dev_err(&priv->client->dev, "failed to write sense on cmd\n");
 		return -EBUSY;
 	}
 
@@ -272,7 +272,7 @@ static void himax_ts_close(struct input_dev *dev)
 	struct i2c_client *client = priv->client;
 
 	if (i2c_master_send(client, hx85x_senseoff_cmd, 1) != 1)
-		dev_err(&priv->client->dev, "failed to write sense off command\n");
+		dev_err(&priv->client->dev, "failed to write sense off cmd\n");
 }
 
 static struct input_dev *himax_ts_init_input(struct himax_ts_priv *priv)
@@ -281,7 +281,7 @@ static struct input_dev *himax_ts_init_input(struct himax_ts_priv *priv)
 
 	input = input_allocate_device();
 	if (!input) {
-		dev_err(&priv->client->dev, "Failed to allocate input device\n");
+		dev_err(&priv->client->dev, "Failed to allocate input dev\n");
 		return NULL;
 	}
 
