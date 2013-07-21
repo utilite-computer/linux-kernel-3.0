@@ -432,6 +432,8 @@ static int himax_ts_suspend(struct device *dev)
 
 	if (device_may_wakeup(&client->dev))
 		enable_irq_wake(priv->irq);
+	else if (i2c_master_send(client, hx85x_senseoff_cmd, 1) != 1)
+		dev_err(&priv->client->dev, "failed to write sense off cmd\n");
 
 	return 0;
 }
@@ -440,6 +442,13 @@ static int himax_ts_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct himax_ts_priv *priv = i2c_get_clientdata(client);
+
+	himax_ts_setup(priv);
+
+	if (i2c_master_send(client, hx85x_senseon_cmd, 1) != 1)
+		dev_err(&priv->client->dev, "failed to write sense on cmd\n");
+
+	msleep(100);
 
 	if (device_may_wakeup(&client->dev))
 		disable_irq_wake(priv->irq);
