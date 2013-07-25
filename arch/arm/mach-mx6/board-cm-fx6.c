@@ -90,7 +90,7 @@
 #define CM_FX6_SATA_LDO_EN		IMX_GPIO_NR(2, 16)
 #define CM_FX6_ECSPI1_CS0		IMX_GPIO_NR(2, 30)
 
-#define CM_FX6_WIFI_NPD		IMX_GPIO_NR(7, 12)
+#define CM_FX6_WIFI_NPD			IMX_GPIO_NR(7, 12)
 #define CM_FX6_WIFI_NRESET		IMX_GPIO_NR(6, 16)
 
 #define CM_FX6_GREEN_LED		IMX_GPIO_NR(2, 31)
@@ -568,9 +568,9 @@ static inline void sb_fx6_himax_ts_init(void) {}
 void sb_fx6_eeprom_setup(struct memory_accessor *memory_accessor, void *context);
 
 static struct at24_platform_data sb_fx6_eeprom_pdata = {
-        .byte_len       = 256,
-        .page_size      = 16,
-		.setup			= sb_fx6_eeprom_setup,
+	.byte_len	= 256,
+	.page_size	= 16,
+	.setup		= sb_fx6_eeprom_setup,
 };
 #endif
 
