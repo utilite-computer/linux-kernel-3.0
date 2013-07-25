@@ -731,7 +731,7 @@ static void sb_fx6_board_fixup(void) {
 	cm_fx6_dvi_data.update = cm_fx6_dvi_update;
 }
 
-static const struct imx_pcie_platform_data cm_fx6_pcie_data  __initconst = {
+static const struct imx_pcie_platform_data cm_fx6_pcie_data = {
 	.pcie_pwr_en	= SB_FX6_PCIE_MUX_PWR,
 	.pcie_rst	= SB_FX6_ETH_RST,
 	.pcie_wake_up	= -EINVAL,
