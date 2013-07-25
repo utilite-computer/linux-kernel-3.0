@@ -565,7 +565,8 @@ static inline void sb_fx6_himax_ts_init(void) {}
 #endif /* CONFIG_TOUCHSCREEN_HIMAX */
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
-void sb_fx6_eeprom_setup(struct memory_accessor *memory_accessor, void *context);
+static void sb_fx6_eeprom_setup(struct memory_accessor *memory_accessor,
+				void *context);
 
 static struct at24_platform_data sb_fx6_eeprom_pdata = {
 	.byte_len	= 256,
@@ -737,7 +738,7 @@ static const struct imx_pcie_platform_data cm_fx6_pcie_data  __initconst = {
 	.pcie_dis	= -EINVAL,
 };
 
-void sb_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
+static void sb_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
 {
 	char product_name[EEPROM_PRODUCT_NAME_LEN] = {0};
 	eeprom_read_product_name(mem_acc,product_name);
