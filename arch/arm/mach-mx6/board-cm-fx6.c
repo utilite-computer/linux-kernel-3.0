@@ -105,7 +105,7 @@
 #define CM_FX6_SATA_PWLOSS_INT		IMX_GPIO_NR(6, 31)
 #define CM_FX6_USB_HUB_RST		IMX_GPIO_NR(7, 8)
 
-#define SB_FX6_HX8520_PENDOWN		IMX_GPIO_NR(1, 4)
+#define SB_FX6_HIMAX_PENDOWN		IMX_GPIO_NR(1, 4)
 #define SB_FX6_ETH_RST			IMX_GPIO_NR(1, 26)
 #define SB_FX6_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define SB_FX6_SD3_WP			IMX_GPIO_NR(7, 0)
@@ -547,22 +547,22 @@ static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
 };
 #endif
 
-#if defined(CONFIG_TOUCHSCREEN_HX8520_C) || \
-	defined(CONFIG_TOUCHSCREEN_HX8520_C_MODULE)
-static void __init hx8520_c_init(void)
+#if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
+	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
+static void __init sb_fx6_himax_ts_init(void)
 {
 	int err;
 
-	err = gpio_request_one(SB_FX6_HX8520_PENDOWN, GPIOF_IN, "hx8520_pen");
+	err = gpio_request_one(SB_FX6_HIMAX_PENDOWN, GPIOF_IN, "himax_pen");
 	if (err) {
-		pr_err("Couldn't obtain gpio for hx8520_pen: %d\n", err);
+		pr_err("CM-FX6: Couldn't obtain gpio for himax_pen: %d\n", err);
 		return;
 	}
-	gpio_export(SB_FX6_HX8520_PENDOWN, 0);
+	gpio_export(SB_FX6_HIMAX_PENDOWN, 0);
 }
-#else /* CONFIG_TOUCHSCREEN_HX8520_C */
-static inline void hx8520_c_init(void) {}
-#endif /* CONFIG_TOUCHSCREEN_HX8520_C */
+#else /* CONFIG_TOUCHSCREEN_HIMAX */
+static inline void sb_fx6_himax_ts_init(void) {}
+#endif /* CONFIG_TOUCHSCREEN_HIMAX */
 
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
 void sb_fx6_eeprom_setup(struct memory_accessor *memory_accessor, void *context);
@@ -613,11 +613,11 @@ static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
 		.platform_data = &sb_fx6_gpio_ext_pdata,
 	},
 #endif
-#if defined(CONFIG_TOUCHSCREEN_HX8520_C) || \
-	defined(CONFIG_TOUCHSCREEN_HX8520_C_MODULE)
+#if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
+	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
 	{
-		I2C_BOARD_INFO("hx8520-c", 0x4A),
-		.irq = gpio_to_irq(SB_FX6_HX8520_PENDOWN),
+		I2C_BOARD_INFO("hx8526-a", 0x4A),
+		.irq = gpio_to_irq(SB_FX6_HIMAX_PENDOWN),
 	},
 #endif
 #if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
@@ -971,9 +971,7 @@ static void __init i2c_register_bus_binfo(int busnum,
 #ifdef CONFIG_I2C_IMX
 static void __init cm_fx6_i2c_init(void)
 {
-#if defined(CONFIG_TOUCHSCREEN_HX8520_C) || defined(CONFIG_TOUCHSCREEN_HX8520_C_MODULE)
-	hx8520_c_init();
-#endif
+	sb_fx6_himax_ts_init();
 
 	/* register the physical bus 0 w/o any devices */
 	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL,
