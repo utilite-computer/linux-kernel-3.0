@@ -3192,7 +3192,7 @@ static int ipu_task_thread(void *argv)
 					dev_err(tsk->dev,
 					"ERR: no-0x%x,can not get split_tsk0\n",
 					tsk->task_no);
-				wake_up(&thread_waitq);
+				wake_up_interruptible(&thread_waitq);
 				get_res_do_task(sp_tsk0);
 				dev_dbg(sp_tsk0->dev,
 					"thread:%d complete tsk no:0x%x.\n",
@@ -3296,7 +3296,7 @@ int ipu_queue_task(struct ipu_task *task)
 	tsk->task_in_list = 1;
 	dev_dbg(tsk->dev, "[0x%p,no-0x%x] list_add_tail\n", tsk, tsk->task_no);
 	spin_unlock_irqrestore(&ipu_task_list_lock, flags);
-	wake_up(&thread_waitq);
+	wake_up_interruptible(&thread_waitq);
 
 	ret = wait_event_timeout(tsk->task_waitq, atomic_read(&tsk->done),
 						msecs_to_jiffies(tsk->timeout));
