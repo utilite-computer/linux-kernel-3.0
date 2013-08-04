@@ -114,10 +114,6 @@
 #define SB_FX6_PCIE_MUX_PWR		IMX_GPIO_NR(8, 4)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
-#define MX6_ARM2_CAN2_EN		IMX_GPIO_NR(5, 24)
-#define MX6_ARM2_CAN1_STBY		IMX_GPIO_NR(7, 12)
-#define MX6_ARM2_CAN1_EN		IMX_GPIO_NR(7, 13)
-
 #define SB_FX6_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
 #define SB_FX6_DVI_HPD			IMX_GPIO_NR(1, 4)
 
@@ -125,7 +121,6 @@
 #define SB_FX6M_PRODUCT_NAME_LEN 7
 
 static int spdif_en;
-static int flexcan_en;
 static int audmod_master = 0;
 
 extern char *soc_reg_id;
@@ -1387,43 +1382,6 @@ static void __init cm_fx6_pwm_init(void)
 static inline void cm_fx6_pwm_init() {}
 #endif /* CONFIG_BACKLIGHT_PWM */
 
-static struct gpio mx6_flexcan_gpios[] = {
-	{ MX6_ARM2_CAN1_EN, GPIOF_OUT_INIT_LOW, "flexcan1-en" },
-	{ MX6_ARM2_CAN1_STBY, GPIOF_OUT_INIT_LOW, "flexcan1-stby" },
-	{ MX6_ARM2_CAN2_EN, GPIOF_OUT_INIT_LOW, "flexcan2-en" },
-};
-
-static void mx6_flexcan0_switch(int enable)
-{
-	if (enable) {
-//		gpio_set_value(MX6_ARM2_CAN1_EN, 1);
-//		gpio_set_value(MX6_ARM2_CAN1_STBY, 1);
-	} else {
-//		gpio_set_value(MX6_ARM2_CAN1_EN, 0);
-//		gpio_set_value(MX6_ARM2_CAN1_STBY, 0);
-	}
-}
-
-static void mx6_flexcan1_switch(int enable)
-{
-	if (enable) {
-//		gpio_set_value(MX6_ARM2_CAN2_EN, 1);
-//		gpio_set_value_cansleep(MX6_ARM2_CAN2_STBY, 1);
-	} else {
-//		gpio_set_value(MX6_ARM2_CAN2_EN, 0);
-//		gpio_set_value_cansleep(MX6_ARM2_CAN2_STBY, 0);
-	}
-}
-
-static const struct flexcan_platform_data
-		mx6_arm2_flexcan_pdata[] __initconst = {
-	{
-		.transceiver_switch = mx6_flexcan0_switch,
-	}, {
-		.transceiver_switch = mx6_flexcan1_switch,
-	}
-};
-
 static void arm2_suspend_enter(void)
 {
 	/* suspend preparation */
@@ -1502,13 +1460,6 @@ static int __init early_enable_spdif(char *p)
 	return 0;
 }
 early_param("spdif", early_enable_spdif);
-
-static int __init early_enable_can(char *p)
-{
-	flexcan_en = 1;
-	return 0;
-}
-early_param("flexcan", early_enable_can);
 
 static int __init early_set_adio_mode(char *p)
 {
@@ -1636,38 +1587,28 @@ static struct viv_gpu_platform_data imx6_gpu_pdata __initdata = {
  */
 static void __init cm_fx6_init(void)
 {
-	int ret;
-
 	iomux_v3_cfg_t *common_pads = NULL;
 	iomux_v3_cfg_t *spdif_pads = NULL;
-	iomux_v3_cfg_t *flexcan_pads = NULL;
 
 	int common_pads_cnt;
 	int spdif_pads_cnt;
-	int flexcan_pads_cnt;
-
 
 	/*
 	 * common pads: pads are non-shared with others on this board
 	 * feature_pds: pads are shared with others on this board
 	 */
-
 	if (cpu_is_mx6q()) {
 		common_pads = cm_fx6_q_common_pads;
 		spdif_pads = cm_fx6_q_spdif_pads;
-		flexcan_pads = cm_fx6_q_can_pads;
 
 		common_pads_cnt = ARRAY_SIZE(cm_fx6_q_common_pads);
 		spdif_pads_cnt =  ARRAY_SIZE(cm_fx6_q_spdif_pads);
-		flexcan_pads_cnt = ARRAY_SIZE(cm_fx6_q_can_pads);
 	} else if (cpu_is_mx6dl()) {
 		common_pads = cm_fx6_dl_pads;
 		spdif_pads = cm_fx6_dl_spdif_pads;
-		flexcan_pads = cm_fx6_dl_can_pads;
 
 		common_pads_cnt = ARRAY_SIZE(cm_fx6_dl_pads);
 		spdif_pads_cnt =  ARRAY_SIZE(cm_fx6_dl_spdif_pads);
-		flexcan_pads_cnt = ARRAY_SIZE(cm_fx6_dl_can_pads);
 	}
 
 	BUG_ON(!common_pads);
@@ -1676,16 +1617,6 @@ static void __init cm_fx6_init(void)
 	if (spdif_en) {
 		BUG_ON(!spdif_pads);
 		mxc_iomux_v3_setup_multiple_pads(spdif_pads, spdif_pads_cnt);
-	}
-
-	/*
-	 * S/PDIF out and can1 stby are mutually exclusive because both
-	 * use GPIO_17.
-	 */
-	if (!spdif_en && flexcan_en) {
-		BUG_ON(!flexcan_pads);
-		mxc_iomux_v3_setup_multiple_pads(flexcan_pads,
-						flexcan_pads_cnt);
 	}
 
 	/*
@@ -1745,16 +1676,9 @@ static void __init cm_fx6_init(void)
 		imx6q_add_spdif(&mxc_spdif_data);
 		imx6q_add_spdif_dai();
 		imx6q_add_spdif_audio_device();
-	} else if (flexcan_en) {
-		ret = gpio_request_array(mx6_flexcan_gpios,
-				ARRAY_SIZE(mx6_flexcan_gpios));
-		if (ret) {
-			pr_err("failed to request flexcan-gpios: %d\n", ret);
-		} else {
-			imx6q_add_flexcan0(&mx6_arm2_flexcan_pdata[0]);
-			imx6q_add_flexcan1(&mx6_arm2_flexcan_pdata[1]);
-		}
 	}
+
+	imx6q_add_flexcan0(NULL);
 
 	imx6q_add_perfmon(0);
 	imx6q_add_perfmon(1);

@@ -170,25 +170,16 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	/* DVI: EDID */
 	MX6Q_PAD_GPIO_2__GPIO_1_2,	/* utilite DVI_DDC_SEL */
 	MX6Q_PAD_GPIO_4__GPIO_1_4,	/* utilite DVI_HPD */
+
+	/* CAN1 */
+	MX6Q_PAD_KEY_COL2__CAN1_TXCAN,
+	MX6Q_PAD_KEY_ROW2__CAN1_RXCAN,
 };
 
 static iomux_v3_cfg_t cm_fx6_q_spdif_pads[] = {
 	/* SPDIF */
 	MX6Q_PAD_GPIO_16__SPDIF_IN1,
 	MX6Q_PAD_GPIO_19__SPDIF_OUT1,
-};
-
-static iomux_v3_cfg_t cm_fx6_q_can_pads[] = {
-	/* CAN1 */
-	MX6Q_PAD_GPIO_7__CAN1_TXCAN,
-	MX6Q_PAD_KEY_ROW2__CAN1_RXCAN,
-	MX6Q_PAD_GPIO_17__GPIO_7_12,	/* CAN1 STBY */
-	MX6Q_PAD_GPIO_18__GPIO_7_13,	/* CAN1 EN */
-
-	/* CAN2 */
-	MX6Q_PAD_KEY_COL4__CAN2_TXCAN,
-	MX6Q_PAD_KEY_ROW4__CAN2_RXCAN,
-	MX6Q_PAD_CSI0_DAT6__GPIO_5_24,	/* CAN2 EN */
 };
 
 static iomux_v3_cfg_t cm_fx6_q_audmux_pads[] = {
