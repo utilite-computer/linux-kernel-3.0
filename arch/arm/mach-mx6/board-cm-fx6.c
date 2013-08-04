@@ -72,6 +72,7 @@
 
 #include <asm/irq.h>
 #include <asm/setup.h>
+#include <asm/system.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
 #include <asm/mach/time.h>
@@ -120,6 +121,7 @@
 #define SB_FX6M_PRODUCT_NAME	"SB-FX6m"
 #define SB_FX6M_PRODUCT_NAME_LEN 7
 
+static u32 board_rev;
 static int spdif_en;
 static int audmod_master = 0;
 
@@ -1583,6 +1585,65 @@ static struct viv_gpu_platform_data imx6_gpu_pdata __initdata = {
 };
 
 /*
+ * Set fsl_system_rev:
+ * bit 0-7: Chip Revision ID
+ * bit 8-11: Freescale Boards Revision ID
+ *     0: Unknown or latest revision
+ *     1: RevA Board
+ *     2: RevB board
+ *     3: RevC board
+ * bit 12-19: Chip Silicon ID
+ *     0x63: i.MX6 Dual/Quad
+ *     0x61: i.MX6 Solo/DualLite
+ *     0x60: i.MX6 SoloLite
+ */
+static void cm_fx6_setup_system_rev(void)
+{
+	/* Read Silicon information from Anatop register */
+	/* The register layout:
+	 * bit 16-23: Chip Silicon ID
+	 * 0x60: i.MX6 SoloLite
+	 * 0x61: i.MX6 Solo/DualLite
+	 * 0x63: i.MX6 Dual/Quad
+	 *
+	 * bit 0-7: Chip Revision ID
+	 * 0x00: TO1.0
+	 * 0x01: TO1.1
+	 * 0x02: TO1.2
+	 *
+	 * exp:
+	 * Chip             Major    Minor
+	 * i.MX6Q1.0:       6300     00
+	 * i.MX6Q1.1:       6300     01
+	 * i.MX6Solo1.0:    6100     00
+
+	 * Thus the system_rev will be the following layout:
+	 * | 31 - 20   | 19 - 12 | 11 - 8 | 7 - 0  |
+	 * | ZERO BITS | CHIP ID | BD REV | SI REV |
+	 */
+	u32 fsl_system_rev = 0;
+
+	u32 cpu_type = readl(IO_ADDRESS(ANATOP_BASE_ADDR + 0x260));
+
+	/* Chip Silicon ID */
+	fsl_system_rev = ((cpu_type >> 16) & 0xFF) << 12;
+	/* Chip silicon major revision */
+	fsl_system_rev |= ((cpu_type >> 8) & 0xFF) << 4;
+	fsl_system_rev += 0x10;
+	/* Chip silicon minor revision */
+	fsl_system_rev |= cpu_type & 0xFF;
+
+	/*
+	 * Move the CompuLab board revision to a different variable,
+	 * so we can use it anytime it is needed.
+	 * Put the Freescale silicon revision information to the place where
+	 * the userspace video libraries expect it to be.
+	 */
+	board_rev = system_rev;
+	system_rev = fsl_system_rev;
+}
+
+/*
  * Board specific initialization.
  */
 static void __init cm_fx6_init(void)
@@ -1592,6 +1653,8 @@ static void __init cm_fx6_init(void)
 
 	int common_pads_cnt;
 	int spdif_pads_cnt;
+
+	cm_fx6_setup_system_rev();
 
 	/*
 	 * common pads: pads are non-shared with others on this board
