@@ -69,6 +69,8 @@
 #include <mach/mxc_hdmi.h>
 #include <mach/mxc_asrc.h>
 #include <mach/esdhc.h>
+#include <mach/iomux-mx6q.h>
+#include <mach/iomux-mx6dl.h>
 
 #include <asm/irq.h>
 #include <asm/setup.h>
@@ -122,7 +124,6 @@
 #define SB_FX6M_PRODUCT_NAME_LEN 7
 
 static u32 board_rev;
-static int audmod_master = 0;
 
 extern char *soc_reg_id;
 extern char *pu_reg_id;
@@ -302,7 +303,6 @@ static inline void cm_fx6_init_uart(void)
 }
 
 #define BMCR_PDOWN 0x0800 /* PHY Powerdown */
-#define	WM8731_MCLK_FREQ	(24000000 / 2)
 
 static int cm_fx6_fec_phy_init(struct phy_device *phydev)
 {
@@ -772,6 +772,18 @@ static struct i2c_board_info cm_fx6_i2c2_board_info[] __initdata = {
 #endif
 };
 
+#if defined(CONFIG_SND_SOC_CM_FX6) || defined(CONFIG_SND_SOC_CM_FX6_MODULE)
+#define	WM8731_MCLK_FREQ	(24000000 / 2)
+
+static int audmod_master;
+
+static int __init early_set_audio_mode(char *p)
+{
+	audmod_master = 1;
+	return 0;
+}
+early_param("audmod-mst", early_set_audio_mode);
+
 static struct imx_ssi_platform_data cm_fx6_ssi_pdata = {
 	.flags = IMX_SSI_DMA | IMX_SSI_SYN,
 };
@@ -784,7 +796,6 @@ static struct {
 	long current_rate;
 
 } cm_fx6_audio_clocking_data;
-
 
 static int wm8731_slv_mode_init(void)
 {
@@ -820,24 +831,23 @@ static int wm8731_slv_mode_clock_enable(int enable)
 	long rate_req;
 	long rate_avail;
 
-	if ( !enable )
+	if (!enable)
 		return 0;
 
 	if (cm_fx6_audio_data.sysclk == cm_fx6_audio_clocking_data.current_rate)
 		return 0;
 
-	switch (cm_fx6_audio_data.sysclk)
-	{
-	case 11289600:
-		pll_rate = 632217600;
-		break;
+	switch (cm_fx6_audio_data.sysclk) {
+		case 11289600:
+			pll_rate = 632217600;
+			break;
 
-	case 12288000:
-		pll_rate = 688128000;
-		break;
+		case 12288000:
+			pll_rate = 688128000;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	rate_req = pll_rate;
@@ -845,14 +855,16 @@ static int wm8731_slv_mode_clock_enable(int enable)
 	clk_set_rate(cm_fx6_audio_clocking_data.pll, rate_avail);
 
 	rate_req = cm_fx6_audio_data.sysclk;
-	rate_avail = clk_round_rate(cm_fx6_audio_clocking_data.clock_root, rate_req);
+	rate_avail = clk_round_rate(cm_fx6_audio_clocking_data.clock_root,
+				    rate_req);
 	clk_set_rate(cm_fx6_audio_clocking_data.clock_root, rate_avail);
 
-	pr_info("%s: \"imx-ssi.1\" rate = %ld (= %ld) \n", __FUNCTION__, rate_avail, rate_req);
+	pr_info("%s: \"imx-ssi.1\" rate = %ld (= %ld)\n",
+		__func__, rate_avail, rate_req);
 	cm_fx6_audio_clocking_data.current_rate = cm_fx6_audio_data.sysclk;
+
 	return 0;
 }
-
 
 static int wm8731_mst_mode_init(void)
 {
@@ -879,9 +891,11 @@ static int wm8731_mst_mode_init(void)
 	rate = clk_round_rate(clko, WM8731_MCLK_FREQ);
 	clk_set_rate(clko, rate);
 
-	pr_info("%s: \"CLKO\" rate = %ld (= %d) \n", __FUNCTION__, rate, WM8731_MCLK_FREQ);
+	pr_info("%s: \"CLKO\" rate = %ld (= %d)\n",
+		__func__, rate, WM8731_MCLK_FREQ);
 	cm_fx6_audio_clocking_data.clock_root = clko;
 	cm_fx6_audio_data.sysclk = rate;
+
 	return 0;
 }
 
@@ -889,13 +903,12 @@ static int wm8731_mst_mode_clock_enable(int enable)
 {
 	struct clk *clko = cm_fx6_audio_clocking_data.clock_root;
 
-	if ( enable )
+	if (enable)
 		return clk_enable(clko);
 
 	clk_disable(clko);
 	return 0;
 }
-
 
 static struct platform_device cm_fx6_audio_device = {
 	.name	= "imx-wm8731",
@@ -903,33 +916,28 @@ static struct platform_device cm_fx6_audio_device = {
 };
 
 static struct mxc_audio_platform_data cm_fx6_audio_data = {
-	.ssi_num = 1,
-	.src_port = 2,
-	.ext_port = 4,	/* AUDMUX: port[2] -> port[4] */
-	.hp_gpio = -1,
-	.mic_gpio = -1,
-	.init = wm8731_slv_mode_init,
-	.clock_enable = wm8731_slv_mode_clock_enable,
-	.codec_name = "wm8731-slv-mode",
+	.ssi_num	= 1,
+	.src_port	= 2,
+	.ext_port	= 4,	/* AUDMUX: port[2] -> port[4] */
+	.hp_gpio	= -1,
+	.mic_gpio	= -1,
+	.init		= wm8731_slv_mode_init,
+	.clock_enable	= wm8731_slv_mode_clock_enable,
+	.codec_name	= "wm8731-slv-mode",
 };
 
-static int __init cm_fx6_init_audio(void)
+static void __init cm_fx6_init_audio(void)
 {
-	iomux_v3_cfg_t *audmux_pads;
-	int audmux_pads_cnt;
-
-	if (cpu_is_mx6q()) {
-		audmux_pads = cm_fx6_q_audmux_pads;
-		audmux_pads_cnt = ARRAY_SIZE(cm_fx6_q_audmux_pads);
-	}
-	else if (cpu_is_mx6dl()) {
-		audmux_pads = cm_fx6_dl_audmux_pads;
-		audmux_pads_cnt = ARRAY_SIZE(cm_fx6_dl_audmux_pads);
-	}
-	mxc_iomux_v3_setup_multiple_pads(audmux_pads, audmux_pads_cnt);
-
 	if (audmod_master) {
-		/* override default audio settings */
+		/*
+		 * For the master mode to work correctly, cm-fx6 should have:
+		 * R105 populated and R104 removed.
+		 */
+		if (cpu_is_mx6q())
+			mxc_iomux_v3_setup_pad(MX6Q_PAD_GPIO_5__CCM_CLKO);
+		else if (cpu_is_mx6dl())
+			mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_5__CCM_CLKO);
+
 		cm_fx6_audio_data.init = wm8731_mst_mode_init;
 		cm_fx6_audio_data.clock_enable = wm8731_mst_mode_clock_enable;
 		cm_fx6_audio_data.codec_name = "wm8731-mst-mode";
@@ -937,10 +945,10 @@ static int __init cm_fx6_init_audio(void)
 
 	mxc_register_device(&cm_fx6_audio_device, &cm_fx6_audio_data);
 	imx6q_add_imx_ssi(1, &cm_fx6_ssi_pdata);
-
-	return 0;
 }
-
+#else
+static inline void cm_fx6_init_audio(void) {}
+#endif /* CONFIG_SND_SOC_CM_FX6 */
 
 static void __init i2c_register_bus_binfo(int busnum,
 					  struct imxi2c_platform_data *i2cdata,
@@ -1455,13 +1463,6 @@ static struct mxc_dvfs_platform_data arm2_dvfscore_data = {
 	.delay_time		= 80,
 };
 
-static int __init early_set_audio_mode(char *p)
-{
-	audmod_master = 1;
-	return 0;
-}
-early_param("audmod-mst", early_set_audio_mode);
-
 #if defined(CONFIG_SND_SOC_IMX_SPDIF) || \
     defined(CONFIG_SND_SOC_IMX_SPDIF_MODULE)
 static int cm_fx6_spdif_clk_set_rate(struct clk *clk, unsigned long rate)
@@ -1737,7 +1738,6 @@ static void __init cm_fx6_init(void)
 
 	imx6q_add_busfreq();
 
-	/* Audio */
 	cm_fx6_init_audio();
 }
 

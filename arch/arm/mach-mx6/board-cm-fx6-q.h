@@ -160,8 +160,12 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_EIM_A23__GPIO_6_6,	/* SATA_nRSTDLY */
 	MX6Q_PAD_EIM_BCLK__GPIO_6_31,	/* SATA_PWLOSS_INT */
 
-	/* Audio codec: external clock */
-	MX6Q_PAD_GPIO_5__CCM_CLKO,
+	/* AUDMUX */
+	MX6Q_PAD_SD2_CMD__AUDMUX_AUD4_RXC,
+	MX6Q_PAD_SD2_DAT0__AUDMUX_AUD4_RXD,
+	MX6Q_PAD_SD2_DAT1__AUDMUX_AUD4_TXFS,
+	MX6Q_PAD_SD2_DAT2__AUDMUX_AUD4_TXD,
+	MX6Q_PAD_SD2_DAT3__AUDMUX_AUD4_TXC,
 
 	/* Wlan */
 	MX6Q_PAD_GPIO_17__GPIO_7_12,   /* WIFI NPD */
@@ -178,16 +182,6 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	/* SPDIF */
 	MX6Q_PAD_GPIO_16__SPDIF_IN1,
 	MX6Q_PAD_GPIO_19__SPDIF_OUT1,
-};
-
-static iomux_v3_cfg_t cm_fx6_q_audmux_pads[] = {
-	/* AUDMUX */
-	MX6Q_PAD_SD2_CMD__AUDMUX_AUD4_RXC,      /* unused */
-	MX6Q_PAD_SD2_CLK__AUDMUX_AUD4_RXFS,     /* unused */
-	MX6Q_PAD_SD2_DAT0__AUDMUX_AUD4_RXD,
-	MX6Q_PAD_SD2_DAT1__AUDMUX_AUD4_TXFS,
-	MX6Q_PAD_SD2_DAT2__AUDMUX_AUD4_TXD,
-	MX6Q_PAD_SD2_DAT3__AUDMUX_AUD4_TXC,
 };
 
 #define CM_FX6_Q_USDHC_PAD_SETTING(id, speed)	\
