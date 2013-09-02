@@ -764,7 +764,7 @@ static struct i2c_board_info cm_fx6_i2c2_board_info[] __initdata = {
 		.platform_data = &cm_fx6_eeprom_pdata,
 	},
 #endif
-#if defined(CONFIG_SND_SOC_CM_FX6)
+#if defined(CONFIG_SND_SOC_CM_FX6) || defined(CONFIG_SND_SOC_CM_FX6_MODULE)
 	{
 		/* wm8731 audio codec */
 		I2C_BOARD_INFO("wm8731", 0x1a),
@@ -1455,12 +1455,12 @@ static struct mxc_dvfs_platform_data arm2_dvfscore_data = {
 	.delay_time		= 80,
 };
 
-static int __init early_set_adio_mode(char *p)
+static int __init early_set_audio_mode(char *p)
 {
 	audmod_master = 1;
 	return 0;
 }
-early_param("audmod-mst", early_set_adio_mode);
+early_param("audmod-mst", early_set_audio_mode);
 
 #if defined(CONFIG_SND_SOC_IMX_SPDIF) || \
     defined(CONFIG_SND_SOC_IMX_SPDIF_MODULE)
