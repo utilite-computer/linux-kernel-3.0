@@ -117,11 +117,8 @@
 #define SB_FX6_PCIE_MUX_PWR		IMX_GPIO_NR(8, 4)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
-#define SB_FX6_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
-#define SB_FX6_DVI_HPD			IMX_GPIO_NR(1, 4)
-
-#define SB_FX6M_PRODUCT_NAME	"SB-FX6m"
-#define SB_FX6M_PRODUCT_NAME_LEN 7
+#define SB_FX6M_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
+#define SB_FX6M_DVI_HPD			IMX_GPIO_NR(1, 4)
 
 static u32 board_rev;
 
@@ -524,25 +521,6 @@ static void __init cm_fx6_spi_init(void)
 static inline void cm_fx6_spi_init(void) {}
 #endif /* CONFIG_SPI_IMX */
 
-#if defined(CONFIG_I2C_IMX) || defined(CONFIG_I2C_IMX_MODULE)
-static struct imxi2c_platform_data cm_fx6_i2c0_data = {
-	.bitrate = 100000,
-};
-
-static struct imxi2c_platform_data cm_fx6_i2c1_data = {
-	.bitrate = 100000,
-};
-
-static struct imxi2c_platform_data cm_fx6_i2c2_data = {
-	.bitrate = 400000,
-};
-
-#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
-static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
-	.gpio_base = SB_FX6_GPIO_EXT_BASE,
-};
-#endif
-
 #if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
 	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
 static void __init sb_fx6_himax_ts_init(void)
@@ -560,125 +538,11 @@ static void __init sb_fx6_himax_ts_init(void)
 static inline void sb_fx6_himax_ts_init(void) {}
 #endif /* CONFIG_TOUCHSCREEN_HIMAX */
 
-#if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
-static void sb_fx6_eeprom_setup(struct memory_accessor *memory_accessor,
-				void *context);
-
-static struct at24_platform_data sb_fx6_eeprom_pdata = {
-	.byte_len	= 256,
-	.page_size	= 16,
-	.setup		= sb_fx6_eeprom_setup,
-};
-#endif
-
-#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
-static void cm_fx6_dvi_init(void)
-{
-	int err = gpio_request(SB_FX6_DVI_HPD, "dvi detect");
-	if (err) {
-		pr_info("%s > error %d\n",__func__,err);
-	}
-
-	gpio_direction_input(SB_FX6_DVI_HPD);
-}
-
-static int cm_fx6_dvi_update(void)
-{
-	/* sb-fx6 - always connected */
-	return 1;
-}
-
-static int sb_fx6m_dvi_update(void)
-{
-	int value = gpio_get_value(SB_FX6_DVI_HPD);
-	pr_info("DVI display: %s \n", (value ? "attach" : "detach"));
-	return value;
-}
-
-static struct fsl_mxc_dvi_platform_data cm_fx6_dvi_data = {
-	.ipu_id		= 0,
-	.disp_id	= 0,
-	.init		= cm_fx6_dvi_init,
-	.update		= sb_fx6m_dvi_update,
-};
-#endif /* CONFIG_FB_MXC_EDID */
-
-static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
-#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
-	{
-		I2C_BOARD_INFO("pca9555", 0x26),
-		.platform_data = &sb_fx6_gpio_ext_pdata,
-	},
-#endif
-#if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
-	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
-	{
-		I2C_BOARD_INFO("hx8526-a", 0x4A),
-		.irq = gpio_to_irq(SB_FX6_HIMAX_PENDOWN),
-	},
-#endif
-#if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
-	{
-		I2C_BOARD_INFO("at24", 0x50),
-		.platform_data = &sb_fx6_eeprom_pdata,
-	},
-#endif
-};
-
-static struct i2c_board_info cm_fx6_i2c0c4_board_info[] __initdata = {
-#ifdef CONFIG_FB_MXC_EDID
-	{
-		I2C_BOARD_INFO("mxc_dvi", 0x50),
-		.irq = gpio_to_irq(SB_FX6_DVI_HPD),
-		.platform_data = &cm_fx6_dvi_data,
-	},
-#endif
-};
-
-static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
-#if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
-	{
-		I2C_BOARD_INFO("mxc_hdmi_i2c", 0x50),
-	},
-#endif
-#endif
-};
-
-static const unsigned sb_fx6m_i2cmux_gpios[] = {
-	SB_FX6_DVI_DDC_SEL
-};
-
-static const unsigned sb_fx6m_i2cmux_values[] = {
-	0, 1
-};
-
-static struct gpio_i2cmux_platform_data sb_fx6m_i2cmux_data = {
-	.parent		= 0,	/* multiplex I2C-0 */
-	.base_nr	= 3,	/* create I2C-3+ */
-	.gpios		= sb_fx6m_i2cmux_gpios,
-	.n_gpios	= ARRAY_SIZE(sb_fx6m_i2cmux_gpios),
-	.values		= sb_fx6m_i2cmux_values,
-	.n_values	= ARRAY_SIZE(sb_fx6m_i2cmux_values),
-	.idle		= GPIO_I2CMUX_NO_IDLE,
-};
-
-
-static struct platform_device sb_fx6m_i2cmux = {
-	.name	= "gpio-i2cmux",
-	.id		= -1,
-	.dev	= {
-		.platform_data = &sb_fx6m_i2cmux_data,
-	},
-};
-
-static struct igb_platform_data cm_fx6_igb_pdata = {
-	.mac_address = {0x00 , 0xA0 , 0xC9, 0x65, 0x43, 0x21},
-};
-
-#if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
+#if defined(CONFIG_I2C_IMX) || defined(CONFIG_I2C_IMX_MODULE)
+/* EEPROM layout */
 #define EEPROM_1ST_MAC_OFF		4
-#define EEPROM_PRODUCT_NAME_OFF	128
-#define EEPROM_PRODUCT_NAME_LEN	16
+#define EEPROM_BOARD_NAME_OFF		128
+#define EEPROM_BOARD_NAME_LEN		16
 
 static int eeprom_read(struct memory_accessor *mem_acc, unsigned char *buf,
 		       int offset, int size, const char* objname)
@@ -703,13 +567,14 @@ static void eeprom_read_mac_address(struct memory_accessor *mem_acc,
 		memset(mac, 0, ETH_ALEN);
 }
 
-static void eeprom_read_product_name(struct memory_accessor *mem_acc,
-				    unsigned char *product_name)
+static void eeprom_read_board_name(struct memory_accessor *mem_acc,
+				   unsigned char *name)
 {
-	char objname[EEPROM_PRODUCT_NAME_LEN] = {0};
+	char *objname = "board name";
 
-	if (eeprom_read(mem_acc, product_name, EEPROM_PRODUCT_NAME_OFF, EEPROM_PRODUCT_NAME_LEN, objname))
-		memset(product_name, 0, EEPROM_PRODUCT_NAME_LEN);
+	if (eeprom_read(mem_acc, name, EEPROM_BOARD_NAME_OFF,
+			EEPROM_BOARD_NAME_LEN, objname))
+		memset(name, 0, EEPROM_BOARD_NAME_LEN);
 }
 
 static void cm_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
@@ -718,59 +583,228 @@ static void cm_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
 	imx6_init_fec(cm_fx6_fec_data);
 }
 
-static void sb_fx6_board_fixup(void) {
-	/* this is an evaluation board */
-	cm_fx6_sd3_data.wp_gpio = SB_FX6_SD3_WP;
-	cm_fx6_sd3_data.always_present = 0;
-
-	cm_fx6_dvi_data.init   = NULL;
-	cm_fx6_dvi_data.update = cm_fx6_dvi_update;
-}
-
-static const struct imx_pcie_platform_data cm_fx6_pcie_data = {
-	.pcie_pwr_en	= SB_FX6_PCIE_MUX_PWR,
-	.pcie_rst	= SB_FX6_ETH_RST,
-	.pcie_wake_up	= -EINVAL,
-	.pcie_dis	= -EINVAL,
-};
-
-static void sb_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
-{
-	char product_name[EEPROM_PRODUCT_NAME_LEN] = {0};
-	eeprom_read_product_name(mem_acc,product_name);
-	if (strncmp(product_name,SB_FX6M_PRODUCT_NAME,SB_FX6M_PRODUCT_NAME_LEN)==0) {
-		printk("%s > product_name { %s } reading mac\n",__func__,product_name);
-		eeprom_read_mac_address(mem_acc, cm_fx6_igb_pdata.mac_address);
-		igb_set_platform_data(&cm_fx6_igb_pdata);
-	} else {
-		printk("%s > product_name { %s } calling fixup\n",__func__,product_name);
-		sb_fx6_board_fixup();
-	}
-	/* Add PCIe RC interface support */
-	imx6q_add_pcie(&cm_fx6_pcie_data);
-}
-
 static struct at24_platform_data cm_fx6_eeprom_pdata = {
         .byte_len       = 256,
         .page_size      = 16,
 	.setup		= cm_fx6_eeprom_setup,
 };
-#endif
+
+#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
+static int sb_fx6_dvi_update(void)
+{
+	/* always connected */
+	return 1;
+}
+
+static void sb_fx6m_dvi_init(void)
+{
+	int err;
+
+	err = gpio_request(SB_FX6M_DVI_HPD, "dvi detect");
+	if (err)
+		pr_err("%s > error %d\n", __func__, err);
+
+	gpio_direction_input(SB_FX6M_DVI_HPD);
+}
+
+static int sb_fx6m_dvi_update(void)
+{
+	return gpio_get_value(SB_FX6M_DVI_HPD);
+}
+
+static struct fsl_mxc_dvi_platform_data baseboard_dvi_data = {
+	.ipu_id		= 0,
+	.disp_id	= 0,
+	.init		= sb_fx6m_dvi_init,
+	.update		= sb_fx6m_dvi_update,
+};
+#endif /* CONFIG_FB_MXC_EDID */
+
+static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
+#if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
+	{
+		I2C_BOARD_INFO("mxc_hdmi_i2c", 0x50),
+	},
+#endif /* CONFIG_FB_MXC_HDMI */
+};
 
 static struct i2c_board_info cm_fx6_i2c2_board_info[] __initdata = {
-#if defined(CONFIG_EEPROM_AT24) || defined(CONFIG_EEPROM_AT24_MODULE)
 	{
 		I2C_BOARD_INFO("at24", 0x50),
 		.platform_data = &cm_fx6_eeprom_pdata,
 	},
-#endif
 #if defined(CONFIG_SND_SOC_CM_FX6) || defined(CONFIG_SND_SOC_CM_FX6_MODULE)
 	{
 		/* wm8731 audio codec */
 		I2C_BOARD_INFO("wm8731", 0x1a),
 	},
-#endif
+#endif /* CONFIG_SND_SOC_CM_FX6 */
 };
+
+static struct imx_pcie_platform_data baseboard_pcie_data = {
+	.pcie_pwr_en	= -EINVAL,
+	.pcie_rst	= SB_FX6_ETH_RST,
+	.pcie_wake_up	= -EINVAL,
+	.pcie_dis	= -EINVAL,
+};
+
+static void sb_fx6_init(void) {
+	/* BUG */
+	cm_fx6_sd3_data.wp_gpio = SB_FX6_SD3_WP;
+	cm_fx6_sd3_data.always_present = 0;
+
+	/* BUG */
+	baseboard_dvi_data.init = NULL;
+	baseboard_dvi_data.update = sb_fx6_dvi_update;
+
+	baseboard_pcie_data.pcie_pwr_en = SB_FX6_PCIE_MUX_PWR;
+}
+
+static struct igb_platform_data baseboard_igb_pdata;
+
+static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
+				   void *context)
+{
+	unsigned char baseboard[EEPROM_BOARD_NAME_LEN];
+
+	eeprom_read_mac_address(mem_acc, baseboard_igb_pdata.mac_address);
+	igb_set_platform_data(&baseboard_igb_pdata);
+
+	eeprom_read_board_name(mem_acc, baseboard);
+	if (strncmp(baseboard, "SB-FX6m", EEPROM_BOARD_NAME_LEN) != 0)
+		sb_fx6_init();
+
+	imx6q_add_pcie(&baseboard_pcie_data);
+}
+
+static struct at24_platform_data baseboard_eeprom_pdata = {
+	.byte_len	= 256,
+	.page_size	= 16,
+	.setup		= baseboard_eeprom_setup,
+};
+
+#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
+static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
+	.gpio_base = SB_FX6_GPIO_EXT_BASE,
+};
+#endif /* CONFIG_GPIO_PCA953X */
+
+static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
+#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
+	{
+		I2C_BOARD_INFO("pca9555", 0x26),
+		.platform_data = &sb_fx6_gpio_ext_pdata,
+	},
+#endif /* CONFIG_GPIO_PCA953X */
+#if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
+	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
+	{
+		I2C_BOARD_INFO("hx8526-a", 0x4A),
+		.irq = gpio_to_irq(SB_FX6_HIMAX_PENDOWN),
+	},
+#endif /* CONFIG_TOUCHSCREEN_HIMAX */
+	{
+		I2C_BOARD_INFO("at24", 0x50),
+		.platform_data = &baseboard_eeprom_pdata,
+	},
+};
+
+static struct i2c_board_info cm_fx6_i2c0c4_board_info[] __initdata = {
+#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
+	{
+		I2C_BOARD_INFO("mxc_dvi", 0x50),
+/* BUG */	.irq = gpio_to_irq(SB_FX6M_DVI_HPD),
+		.platform_data = &baseboard_dvi_data,
+	},
+#endif /* CONFIG_FB_MXC_EDID */
+};
+
+static const unsigned sb_fx6m_i2cmux_gpios[] = {
+	SB_FX6M_DVI_DDC_SEL,
+};
+
+static const unsigned sb_fx6m_i2cmux_values[] = {
+	0, 1,
+};
+
+static struct gpio_i2cmux_platform_data sb_fx6m_i2cmux_data = {
+	.parent		= 0,	/* multiplex I2C-0 */
+	.base_nr	= 3,	/* create I2C-3+ */
+	.values		= sb_fx6m_i2cmux_values,
+	.n_values	= ARRAY_SIZE(sb_fx6m_i2cmux_values),
+	.gpios		= sb_fx6m_i2cmux_gpios,
+	.n_gpios	= ARRAY_SIZE(sb_fx6m_i2cmux_gpios),
+	.idle		= GPIO_I2CMUX_NO_IDLE,
+};
+
+static struct platform_device sb_fx6m_i2cmux = {
+	.name	= "gpio-i2cmux",
+	.id	= -1,
+	.dev	= {
+		.platform_data = &sb_fx6m_i2cmux_data,
+	},
+};
+
+static struct imxi2c_platform_data cm_fx6_i2c0_data = {
+	.bitrate = 100000,
+};
+
+static struct imxi2c_platform_data cm_fx6_i2c1_data = {
+	.bitrate = 100000,
+};
+
+static struct imxi2c_platform_data cm_fx6_i2c2_data = {
+	.bitrate = 400000,
+};
+
+static void __init i2c_register_bus_binfo(int busnum,
+					  struct imxi2c_platform_data *i2cdata,
+					  struct i2c_board_info *info,
+					  int info_size)
+{
+	int err;
+	struct platform_device *pdev;
+
+	if (i2cdata) {
+		pdev = imx6q_add_imx_i2c(busnum, i2cdata);
+		if (IS_ERR(pdev))
+			pr_err("%s: I2C%d register failed: %ld\n",
+			       __func__, busnum, PTR_ERR(pdev));
+	}
+
+	if (info) {
+		err = i2c_register_board_info(busnum, info, info_size);
+		if (err)
+			pr_err("%s: I2C%d board info register failed: %d\n",
+			       __func__, busnum, err);
+	}
+}
+
+static void __init cm_fx6_i2c_init(void)
+{
+	sb_fx6_himax_ts_init();
+
+	/* register the physical bus 0 w/o any devices */
+	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL, 0);
+
+	i2c_register_bus_binfo(1, &cm_fx6_i2c1_data, cm_fx6_i2c1_board_info,
+			       ARRAY_SIZE(cm_fx6_i2c1_board_info));
+	i2c_register_bus_binfo(2, &cm_fx6_i2c2_data, cm_fx6_i2c2_board_info,
+			       ARRAY_SIZE(cm_fx6_i2c2_board_info));
+
+	/* I2C multiplexing: I2C-0 --> I2C-3, I2C-4 */
+	platform_device_register(&sb_fx6m_i2cmux);
+
+	/* register the virtual bus 3 */
+	i2c_register_bus_binfo(3, NULL, cm_fx6_i2c0c3_board_info,
+			       ARRAY_SIZE(cm_fx6_i2c0c3_board_info));
+	/* register the virtual bus 4 */
+	i2c_register_bus_binfo(4, NULL, cm_fx6_i2c0c4_board_info,
+			       ARRAY_SIZE(cm_fx6_i2c0c4_board_info));
+}
+#else /* CONFIG_I2C_IMX */
+static inline void cm_fx6_i2c_init(void) {}
+#endif /* CONFIG_I2C_IMX */
 
 #if defined(CONFIG_SND_SOC_CM_FX6) || defined(CONFIG_SND_SOC_CM_FX6_MODULE)
 #define	WM8731_MCLK_FREQ	(24000000 / 2)
@@ -949,58 +983,6 @@ static void __init cm_fx6_init_audio(void)
 #else
 static inline void cm_fx6_init_audio(void) {}
 #endif /* CONFIG_SND_SOC_CM_FX6 */
-
-static void __init i2c_register_bus_binfo(int busnum,
-					  struct imxi2c_platform_data *i2cdata,
-					  struct i2c_board_info *info,
-					  int info_size)
-{
-	int err;
-	struct platform_device * pdev;
-
-	if (i2cdata) {
-		pdev = imx6q_add_imx_i2c(busnum, i2cdata);
-		if (IS_ERR(pdev))
-			pr_err("%s: I2C bus %d register failed: %ld\n",
-				   __func__, busnum, PTR_ERR(pdev));
-	}
-
-	if (info) {
-		err = i2c_register_board_info(busnum, info, info_size);
-		if (err)
-			pr_err("%s: I2C bus %d board info register failed: %d\n",
-				   __func__, busnum, err);
-	}
-}
-
-#ifdef CONFIG_I2C_IMX
-static void __init cm_fx6_i2c_init(void)
-{
-	sb_fx6_himax_ts_init();
-
-	/* register the physical bus 0 w/o any devices */
-	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL,
-				   0);
-
-	i2c_register_bus_binfo(1, &cm_fx6_i2c1_data, cm_fx6_i2c1_board_info,
-			       ARRAY_SIZE(cm_fx6_i2c1_board_info));
-	i2c_register_bus_binfo(2, &cm_fx6_i2c2_data, cm_fx6_i2c2_board_info,
-			       ARRAY_SIZE(cm_fx6_i2c2_board_info));
-
-	/* I2C multiplexing: I2C-0 --> I2C-3, I2C-4 */
-	platform_device_register(&sb_fx6m_i2cmux);
-
-	/* register the virtual bus 3 */
-	i2c_register_bus_binfo(3, NULL, cm_fx6_i2c0c3_board_info,
-				ARRAY_SIZE(cm_fx6_i2c0c3_board_info));
-	/* register the virtual bus 4 */
-	i2c_register_bus_binfo(4, NULL, cm_fx6_i2c0c4_board_info,
-				ARRAY_SIZE(cm_fx6_i2c0c4_board_info));
-
-}
-#else /* CONFIG_I2C_IMX */
-static inline void cm_fx6_i2c_init(void) {}
-#endif /* CONFIG_I2C_IMX */
 
 static void cm_fx6_usbotg_vbus(bool on)
 {
