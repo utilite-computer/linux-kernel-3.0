@@ -1233,9 +1233,9 @@ static struct ipuv3_fb_platform_data cm_fx6_fb_data[] = {
 		.int_clk		= false,
 	}, {
 		.disp_dev               = "hdmi",
-		.interface_pix_fmt      = IPU_PIX_FMT_RGB24,
-		.mode_str               = "1920x1080M-24@50",
-		.default_bpp            = 24,
+		.interface_pix_fmt      = IPU_PIX_FMT_RGB32,
+		.mode_str               = "1920x1080@60",
+		.default_bpp            = 32,
 		.int_clk                = false,
 	}, {
 		.disp_dev          = "ldb",
@@ -1723,11 +1723,35 @@ static void __init cm_fx6_init(void)
 	cm_fx6_init_audio();
 }
 
+static int __init cm_fx6_init_v4l_init(void) {
+	struct platform_device *voutdev;
+
+	resource_size_t res_mbase;
+	resource_size_t res_msize = SZ_128M;
+
+	if (res_msize) {
+		phys_addr_t phys = memblock_alloc_base(res_msize,SZ_4K, SZ_1G);
+		memblock_remove(phys, res_msize);
+		res_mbase = phys;
+	}
+
+	voutdev = imx6q_add_v4l2_output(0);
+
+	if (res_msize && voutdev) {
+		dma_declare_coherent_memory(&voutdev->dev,
+				res_mbase, res_mbase,res_msize,
+				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+	}
+
+	return 0;
+}
+
 static int __init cm_fx6_init_late(void)
 {
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
 	cm_fx6_init_hdmi_audio();
+	cm_fx6_init_v4l_init();
 	return 0;
 }
 device_initcall_sync(cm_fx6_init_late);
