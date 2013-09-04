@@ -256,6 +256,7 @@ config MACH_CM_FX6
 	bool "Support CompuLab CM-FX6 module"
 	select ARCH_MX6Q
 	select SOC_IMX6Q
+	select EEPROM_AT24
 	select IMX_HAVE_PLATFORM_IMX_UART
 	select IMX_HAVE_PLATFORM_DMA
 	select IMX_HAVE_PLATFORM_FEC
