@@ -667,12 +667,12 @@ static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
 {
 	unsigned char baseboard[EEPROM_BOARD_NAME_LEN];
 
-	eeprom_read_mac_address(mem_acc, baseboard_igb_pdata.mac_address);
-	igb_set_platform_data(&baseboard_igb_pdata);
-
 	eeprom_read_board_name(mem_acc, baseboard);
 	if (strncmp(baseboard, "SB-FX6m", EEPROM_BOARD_NAME_LEN) != 0)
 		sb_fx6_init();
+
+	eeprom_read_mac_address(mem_acc, baseboard_igb_pdata.mac_address);
+	igb_set_platform_data(&baseboard_igb_pdata);
 
 	imx6q_add_pcie(&baseboard_pcie_data);
 }
