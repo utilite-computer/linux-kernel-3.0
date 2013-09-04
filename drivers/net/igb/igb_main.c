@@ -2183,9 +2183,7 @@ static int __devinit igb_probe(struct pci_dev *pdev,
 		struct igb_platform_data *igb_pdata = igb_get_platform_data();
 		memcpy(hw->mac.addr, igb_pdata->mac_address, ETH_ALEN);
 		if (!is_valid_ether_addr(hw->mac.addr)) {
-			dev_err(pci_dev_to_dev(pdev), "Invalid MAC Address\n");
-			err = -EIO;
-			goto err_eeprom;
+			random_ether_addr(hw->mac.addr);
 		}
 	}
 
