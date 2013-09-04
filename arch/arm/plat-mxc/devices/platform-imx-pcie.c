@@ -35,11 +35,11 @@
 #ifdef CONFIG_SOC_IMX6Q
 #define MX6Q_PCIE_BASE_ADDR (PCIE_ARB_END_ADDR - SZ_16K + 1)
 #define MX6Q_INT_PCIE MXC_INT_PCIE_3
-const struct imx_pcie_data imx6q_pcie_data __initconst =
+const struct imx_pcie_data imx6q_pcie_data =
 			imx_pcie_data_entry_single(MX6Q, 0, , SZ_16K);
 #endif
 
-struct platform_device *__init imx_add_pcie(
+struct platform_device *imx_add_pcie(
 		const struct imx_pcie_data *data,
 		const struct imx_pcie_platform_data *pdata)
 {
