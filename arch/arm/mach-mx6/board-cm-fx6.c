@@ -674,6 +674,7 @@ static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
 	eeprom_read_mac_address(mem_acc, baseboard_igb_pdata.mac_address);
 	igb_set_platform_data(&baseboard_igb_pdata);
 
+	imx6q_add_sdhci_usdhc_imx(2, &baseboard_sd3_data);
 	imx6q_add_pcie(&baseboard_pcie_data);
 }
 
@@ -1684,7 +1685,6 @@ static void __init cm_fx6_init(void)
 	imx6q_add_anatop_thermal_imx(1, &cm_fx6_anatop_thermal_data);
 
 	imx6q_add_pm_imx(0, &mx6_arm2_pm_data);
-	imx6q_add_sdhci_usdhc_imx(2, &cm_fx6_sd3_data);
 	imx6q_add_sdhci_usdhc_imx(0, &cm_fx6_sd1_data);
 	imx_add_viv_gpu(&imx6_gpu_data, &imx6_gpu_pdata);
 
