@@ -217,10 +217,11 @@ static const struct esdhc_platform_data cm_fx6_sd1_data __initconst = {
 	.platform_pad_change	= plt_sd_pad_change,
 };
 
-static struct esdhc_platform_data cm_fx6_sd3_data = {
-	.cd_type		= ESDHC_CD_GPIO,
-	.cd_gpio		= SB_FX6_SD3_CD,
-	.wp_gpio		= -1,
+/* The default configuration is set for SB-FX6m */
+static struct esdhc_platform_data baseboard_sd3_data = {
+	.cd_type		= ESDHC_CD_NONE,
+	.cd_gpio		= -EINVAL,
+	.wp_gpio		= -EINVAL,
 	.keep_power_at_suspend	= 1,
 	.delay_line		= 0,
 	.platform_pad_change	= plt_sd_pad_change,
@@ -649,9 +650,10 @@ static struct imx_pcie_platform_data baseboard_pcie_data = {
 };
 
 static void sb_fx6_init(void) {
-	/* BUG */
-	cm_fx6_sd3_data.wp_gpio = SB_FX6_SD3_WP;
-	cm_fx6_sd3_data.always_present = 0;
+	baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
+	baseboard_sd3_data.cd_gpio = SB_FX6_SD3_CD;
+	baseboard_sd3_data.wp_gpio = SB_FX6_SD3_WP;
+	baseboard_sd3_data.always_present = 0;
 
 	/* BUG */
 	baseboard_dvi_data.init = NULL;
