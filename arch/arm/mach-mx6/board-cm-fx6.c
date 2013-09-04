@@ -212,8 +212,8 @@ static int plt_sd_pad_change(unsigned int index, int clock)
 }
 
 static const struct esdhc_platform_data cm_fx6_sd1_data __initconst = {
-	.always_present         = 1,
-	.keep_power_at_suspend  = 1,
+	.always_present		= 1,
+	.keep_power_at_suspend	= 1,
 	.platform_pad_change	= plt_sd_pad_change,
 };
 
@@ -224,7 +224,7 @@ static struct esdhc_platform_data cm_fx6_sd3_data = {
 	.keep_power_at_suspend	= 1,
 	.delay_line		= 0,
 	.platform_pad_change	= plt_sd_pad_change,
-	.always_present = 1,
+	.always_present		= 1,
 };
 
 #if defined(CONFIG_MTD_NAND_GPMI_NAND)
