@@ -649,7 +649,34 @@ static struct imx_pcie_platform_data baseboard_pcie_data = {
 	.pcie_dis	= -EINVAL,
 };
 
-static void sb_fx6_init(void) {
+#if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
+	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
+static struct i2c_board_info sb_fx6_himax_ts_info = {
+	I2C_BOARD_INFO("hx8526-a", 0x4A),
+	.irq = gpio_to_irq(SB_FX6_HIMAX_PENDOWN),
+};
+
+static void sb_fx6_himax_ts_register(void)
+{
+	struct i2c_adapter *i2c_adapter;
+
+	i2c_adapter = i2c_get_adapter(3);
+	if (!i2c_adapter) {
+		pr_err("%s: I2C3 adapter get failed!\n", __func__);
+		return;
+	}
+
+	if (!i2c_new_device(i2c_adapter, &sb_fx6_himax_ts_info))
+		pr_err("%s: Himax TS registration failed on I2C3!/n", __func__);
+
+	i2c_put_adapter(i2c_adapter);
+}
+#else /* CONFIG_TOUCHSCREEN_HIMAX */
+static inline void sb_fx6_himax_ts_register(void) {}
+#endif /* CONFIG_TOUCHSCREEN_HIMAX */
+
+static void sb_fx6_init(void)
+{
 	baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
 	baseboard_sd3_data.cd_gpio = SB_FX6_SD3_CD;
 	baseboard_sd3_data.wp_gpio = SB_FX6_SD3_WP;
@@ -660,6 +687,8 @@ static void sb_fx6_init(void) {
 	baseboard_dvi_data.update = sb_fx6_dvi_update;
 
 	baseboard_pcie_data.pcie_pwr_en = SB_FX6_PCIE_MUX_PWR;
+
+	sb_fx6_himax_ts_register();
 }
 
 static struct igb_platform_data baseboard_igb_pdata;
@@ -699,13 +728,6 @@ static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
 		.platform_data = &sb_fx6_gpio_ext_pdata,
 	},
 #endif /* CONFIG_GPIO_PCA953X */
-#if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
-	defined(CONFIG_TOUCHSCREEN_HIMAX_MODULE)
-	{
-		I2C_BOARD_INFO("hx8526-a", 0x4A),
-		.irq = gpio_to_irq(SB_FX6_HIMAX_PENDOWN),
-	},
-#endif /* CONFIG_TOUCHSCREEN_HIMAX */
 	{
 		I2C_BOARD_INFO("at24", 0x50),
 		.platform_data = &baseboard_eeprom_pdata,
