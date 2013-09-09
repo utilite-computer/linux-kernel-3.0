@@ -35,7 +35,7 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_EIM_EB3__GPIO_2_31,
 	/* ADS7846 PENDOWN */
 	MX6Q_PAD_SD4_DAT7__GPIO_2_15,
-	/* HX8520_C PENDOWN */
+	/* SB-FX6 Himax TS PENDOWN or SB-FX6m DVI HPD */
 	MX6Q_PAD_GPIO_4__GPIO_1_4,
 	/* USB HUB Reset */
 	MX6Q_PAD_SD3_RST__GPIO_7_8,
@@ -171,9 +171,8 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	MX6Q_PAD_GPIO_17__GPIO_7_12,   /* WIFI NPD */
 	MX6Q_PAD_NANDF_CS3__GPIO_6_16, /* WIFI NRESET */
 
-	/* DVI: EDID */
-	MX6Q_PAD_GPIO_2__GPIO_1_2,	/* utilite DVI_DDC_SEL */
-	MX6Q_PAD_GPIO_4__GPIO_1_4,	/* utilite DVI_HPD */
+	/* DVI_DDC_SEL */
+	MX6Q_PAD_GPIO_2__GPIO_1_2,
 
 	/* CAN1 */
 	MX6Q_PAD_KEY_COL2__CAN1_TXCAN,
