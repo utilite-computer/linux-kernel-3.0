@@ -1770,12 +1770,21 @@ static int __init cm_fx6_init_v4l_init(void) {
 	return 0;
 }
 
+static int v4l_enabled=0;
+static int __init v4l_setup(char * __unused)
+{
+        v4l_enabled = 1;
+        return 1;
+}
+__setup("v4l", v4l_setup);
+
 static int __init cm_fx6_init_late(void)
 {
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
 	cm_fx6_init_hdmi_audio();
-	cm_fx6_init_v4l_init();
+	if (v4l_enabled)
+		cm_fx6_init_v4l_init();
 	return 0;
 }
 device_initcall_sync(cm_fx6_init_late);
