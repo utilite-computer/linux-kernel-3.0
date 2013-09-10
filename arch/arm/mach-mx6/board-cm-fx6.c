@@ -638,6 +638,19 @@ static struct fsl_mxc_dvi_platform_data baseboard_dvi_data = {
 	.init		= sb_fx6m_dvi_init,
 	.update		= sb_fx6m_dvi_update,
 };
+
+static struct i2c_board_info baseboard_dvi_info = {
+	I2C_BOARD_INFO("mxc_dvi", 0x50),
+	.irq = gpio_to_irq(SB_FX6M_DVI_HPD),
+	.platform_data = &baseboard_dvi_data,
+};
+
+static void baseboard_dvi_register(void)
+{
+	baseboard_i2c_device_register(4, &baseboard_dvi_info, "DVI");
+}
+#else /* CONFIG_FB_MXC_EDID */
+static inline void baseboard_dvi_register(void) {}
 #endif /* CONFIG_FB_MXC_EDID */
 
 static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
@@ -742,16 +755,6 @@ static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
 	},
 };
 
-static struct i2c_board_info cm_fx6_i2c0c4_board_info[] __initdata = {
-#if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
-	{
-		I2C_BOARD_INFO("mxc_dvi", 0x50),
-/* BUG */	.irq = gpio_to_irq(SB_FX6M_DVI_HPD),
-		.platform_data = &baseboard_dvi_data,
-	},
-#endif /* CONFIG_FB_MXC_EDID */
-};
-
 static const unsigned sb_fx6m_i2cmux_gpios[] = {
 	SB_FX6M_DVI_DDC_SEL,
 };
@@ -831,9 +834,6 @@ static void __init cm_fx6_i2c_init(void)
 	/* register the virtual bus 3 */
 	i2c_register_bus_binfo(3, NULL, cm_fx6_i2c0c3_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c0c3_board_info));
-	/* register the virtual bus 4 */
-	i2c_register_bus_binfo(4, NULL, cm_fx6_i2c0c4_board_info,
-			       ARRAY_SIZE(cm_fx6_i2c0c4_board_info));
 }
 #else /* CONFIG_I2C_IMX */
 static inline void cm_fx6_i2c_init(void) {}
@@ -1788,6 +1788,7 @@ early_param("cm_fx6_v4l", cm_fx6_v4l_setup);
 
 static int __init cm_fx6_init_late(void)
 {
+	baseboard_dvi_register();
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
 	cm_fx6_init_hdmi_audio();
