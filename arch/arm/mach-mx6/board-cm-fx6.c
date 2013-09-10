@@ -703,9 +703,11 @@ static void sb_fx6_init(void)
 	baseboard_sd3_data.wp_gpio = SB_FX6_SD3_WP;
 	baseboard_sd3_data.always_present = 0;
 
-	/* BUG */
 	baseboard_dvi_data.init = NULL;
 	baseboard_dvi_data.update = sb_fx6_dvi_update;
+	/* 0x7f - fake address, as SB-FX6 rev 1.0 does not support DVI DDC */
+	baseboard_dvi_info.addr = 0x7f;
+	baseboard_dvi_info.irq = 0;
 
 	baseboard_pcie_data.pcie_pwr_en = SB_FX6_PCIE_MUX_PWR;
 
