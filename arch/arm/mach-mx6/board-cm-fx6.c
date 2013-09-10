@@ -1755,9 +1755,9 @@ static void __init cm_fx6_init(void)
 	cm_fx6_init_audio();
 }
 
-static int __init cm_fx6_init_v4l_init(void) {
+static int __init cm_fx6_init_v4l_init(void)
+{
 	struct platform_device *voutdev;
-
 	resource_size_t res_mbase;
 	resource_size_t res_msize = SZ_128M;
 
@@ -1768,7 +1768,6 @@ static int __init cm_fx6_init_v4l_init(void) {
 	}
 
 	voutdev = imx6q_add_v4l2_output(0);
-
 	if (res_msize && voutdev) {
 		dma_declare_coherent_memory(&voutdev->dev,
 				res_mbase, res_mbase,res_msize,
@@ -1778,26 +1777,30 @@ static int __init cm_fx6_init_v4l_init(void) {
 	return 0;
 }
 
-static int v4l_enabled=0;
-static int __init v4l_setup(char * __unused)
+static int cm_fx6_v4l_enable;
+
+static int __init cm_fx6_v4l_setup(char *arg)
 {
-        v4l_enabled = 1;
-        return 1;
+        cm_fx6_v4l_enable = 1;
+        return 0;
 }
-__setup("v4l", v4l_setup);
+early_param("cm_fx6_v4l", cm_fx6_v4l_setup);
 
 static int __init cm_fx6_init_late(void)
 {
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
 	cm_fx6_init_hdmi_audio();
-	if (v4l_enabled)
+
+	if (cm_fx6_v4l_enable)
 		cm_fx6_init_v4l_init();
+
 	return 0;
 }
 device_initcall_sync(cm_fx6_init_late);
 
 extern void __iomem *twd_base;
+
 static void __init cm_fx6_timer_init(void)
 {
 	struct clk *uart_clk;
