@@ -450,10 +450,6 @@ static void __init ads7846_init(void)
 static inline void ads7846_init(void) {}
 #endif /* CONFIG_TOUCHSCREEN_ADS7846 */
 
-static struct scf0403_pdata scf0403_config = {
-	.reset_gpio	= SB_FX6_LCD_RST,
-};
-
 static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
 	{
@@ -477,18 +473,6 @@ static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 #endif /* CONFIG_TOUCHSCREEN_ADS7846 */
 };
 
-static struct spi_board_info cm_fx6_spi1_board_info[] __initdata = {
-#if defined(CONFIG_LCD_SCF0403) || defined(CONFIG_LCD_SCF0403_MODULE)
-	{
-		.modalias               = "scf0403",
-		.max_speed_hz           = 1000000,
-		.bus_num                = 1,
-		.chip_select            = 1,
-		.platform_data          = &scf0403_config,
-	},
-#endif
-};
-
 static void __init spi_register_bus_binfo(int busnum,
 					  const struct spi_imx_master *spidata,
 					  struct spi_board_info *info,
@@ -502,10 +486,12 @@ static void __init spi_register_bus_binfo(int busnum,
 		pr_err("%s: SPI bus %d register failed: %ld\n",
 		       __func__, busnum, PTR_ERR(pdev));
 
-	err = spi_register_board_info(info, info_size);
-	if (err)
-		pr_err("%s: SPI bus %d board info register failed: %d\n",
-		       __func__, busnum, err);
+	if (info) {
+		err = spi_register_board_info(info, info_size);
+		if (err)
+			pr_err("%s: SPI%d board info register failed: %d\n",
+			       __func__, busnum, err);
+	}
 }
 
 static void __init cm_fx6_spi_init(void)
@@ -514,12 +500,44 @@ static void __init cm_fx6_spi_init(void)
 	spi_register_bus_binfo(0, &cm_fx6_spi0_data,
 			       cm_fx6_spi0_board_info,
 			       ARRAY_SIZE(cm_fx6_spi0_board_info));
-	spi_register_bus_binfo(1, &cm_fx6_spi1_data,
-			       cm_fx6_spi1_board_info,
-			       ARRAY_SIZE(cm_fx6_spi1_board_info));
+	spi_register_bus_binfo(1, &cm_fx6_spi1_data, NULL, 0);
 }
+
+#if defined(CONFIG_LCD_SCF0403) || defined(CONFIG_LCD_SCF0403_MODULE)
+static struct scf0403_pdata sb_fx6_scf0403_lcd_data = {
+	.reset_gpio	= SB_FX6_LCD_RST,
+};
+
+static struct spi_board_info sb_fx6_scf0403_lcd_info = {
+	.modalias               = "scf0403",
+	.max_speed_hz           = 1000000,
+	.bus_num                = 1,
+	.chip_select            = 1,
+	.platform_data          = &sb_fx6_scf0403_lcd_data,
+};
+
+static void sb_fx6_scf0403_lcd_init(void)
+{
+	struct spi_master *master;
+
+	master = spi_busnum_to_master(1);
+	if (!master) {
+		pr_err("%s: SPI1 master get failed!\n", __func__);
+		return;
+	}
+
+	if (!spi_new_device(master, &sb_fx6_scf0403_lcd_info))
+		pr_err("%s: scf0403 registration failed on SPI1\n", __func__);
+
+	spi_master_put(master);
+}
+#else /* CONFIG_LCD_SCF0403 */
+static inline void sb_fx6_scf0403_lcd_init(void) {}
+#endif /* CONFIG_LCD_SCF0403 */
+
 #else /* CONFIG_SPI_IMX */
 static inline void cm_fx6_spi_init(void) {}
+static inline void sb_fx6_scf0403_lcd_init(void) {}
 #endif /* CONFIG_SPI_IMX */
 
 #if defined(CONFIG_TOUCHSCREEN_HIMAX) || \
@@ -711,6 +729,7 @@ static void sb_fx6_init(void)
 
 	baseboard_pcie_data.pcie_pwr_en = SB_FX6_PCIE_MUX_PWR;
 
+	sb_fx6_scf0403_lcd_init();
 	sb_fx6_himax_ts_register();
 }
 
