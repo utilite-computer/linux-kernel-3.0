@@ -463,7 +463,7 @@ static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 		.chip_select	= 0,
 		.platform_data	= &cm_fx6_spi_flash_data,
 	},
-#endif
+#endif /* CONFIG_MTD_M25P80 */
 #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
 	{
@@ -474,7 +474,7 @@ static struct spi_board_info cm_fx6_spi0_board_info[] __initdata = {
 		.irq		= gpio_to_irq(CM_FX6_ADS7846_PENDOWN),
 		.platform_data	= &ads7846_config,
 	},
-#endif
+#endif /* CONFIG_TOUCHSCREEN_ADS7846 */
 };
 
 static struct spi_board_info cm_fx6_spi1_board_info[] __initdata = {
@@ -603,7 +603,7 @@ static void baseboard_i2c_device_register(int busnum,
 	}
 
 	if (!i2c_new_device(i2c_adapter, info))
-		pr_err("%s: %s registration failed on I2C%d!/n",
+		pr_err("%s: %s registration failed on I2C%d!\n",
 		       __func__, device_name, busnum);
 
 	i2c_put_adapter(i2c_adapter);
