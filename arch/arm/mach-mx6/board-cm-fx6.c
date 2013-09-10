@@ -590,6 +590,25 @@ static struct at24_platform_data cm_fx6_eeprom_pdata = {
 	.setup		= cm_fx6_eeprom_setup,
 };
 
+static void baseboard_i2c_device_register(int busnum,
+					  struct i2c_board_info *info,
+					  char *device_name)
+{
+	struct i2c_adapter *i2c_adapter;
+
+	i2c_adapter = i2c_get_adapter(busnum);
+	if (!i2c_adapter) {
+		pr_err("%s: I2C%d adapter get failed!\n", __func__, busnum);
+		return;
+	}
+
+	if (!i2c_new_device(i2c_adapter, info))
+		pr_err("%s: %s registration failed on I2C%d!/n",
+		       __func__, device_name, busnum);
+
+	i2c_put_adapter(i2c_adapter);
+}
+
 #if defined(CONFIG_FB_MXC_EDID) || defined(CONFIG_FB_MXC_EDID_MODULE)
 static int sb_fx6_dvi_update(void)
 {
@@ -658,18 +677,7 @@ static struct i2c_board_info sb_fx6_himax_ts_info = {
 
 static void sb_fx6_himax_ts_register(void)
 {
-	struct i2c_adapter *i2c_adapter;
-
-	i2c_adapter = i2c_get_adapter(3);
-	if (!i2c_adapter) {
-		pr_err("%s: I2C3 adapter get failed!\n", __func__);
-		return;
-	}
-
-	if (!i2c_new_device(i2c_adapter, &sb_fx6_himax_ts_info))
-		pr_err("%s: Himax TS registration failed on I2C3!/n", __func__);
-
-	i2c_put_adapter(i2c_adapter);
+	baseboard_i2c_device_register(3, &sb_fx6_himax_ts_info, "Himax TS");
 }
 #else /* CONFIG_TOUCHSCREEN_HIMAX */
 static inline void sb_fx6_himax_ts_register(void) {}
