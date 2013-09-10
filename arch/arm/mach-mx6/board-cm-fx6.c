@@ -1709,6 +1709,7 @@ static void __init cm_fx6_init(void)
 	cm_fx6_init_ipu();
 
 	imx6q_add_imx_snvs_rtc();
+	imx6q_add_imx_snvs_pwrkey();
 	imx6q_add_imx_caam();
 
 	cm_fx6_i2c_init();
