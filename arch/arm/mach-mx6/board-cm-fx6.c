@@ -978,6 +978,7 @@ static void sb_fx6_init(void)
 
 	sb_fx6_gpio_ext_register();
 	sb_fx6_scf0403_lcd_init();
+	sb_fx6_himax_ts_init();
 	sb_fx6_himax_ts_register();
 	sb_fx6_ldb_register();
 }
@@ -1087,8 +1088,6 @@ static void __init i2c_register_bus_binfo(int busnum,
 
 static void __init cm_fx6_i2c_init(void)
 {
-	sb_fx6_himax_ts_init();
-
 	/* register the physical bus 0 w/o any devices */
 	i2c_register_bus_binfo(0, &cm_fx6_i2c0_data, NULL, 0);
 
