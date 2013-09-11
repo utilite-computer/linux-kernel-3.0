@@ -940,6 +940,24 @@ static void sb_fx6_ldb_register(void)
 			__func__, PTR_ERR(pdev));
 }
 
+#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
+static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
+	.gpio_base = SB_FX6_GPIO_EXT_BASE,
+};
+
+static struct i2c_board_info sb_fx6_gpio_ext_info = {
+	I2C_BOARD_INFO("pca9555", 0x26),
+	.platform_data = &sb_fx6_gpio_ext_pdata,
+};
+
+static void sb_fx6_gpio_ext_register(void)
+{
+	baseboard_i2c_device_register(3, &sb_fx6_gpio_ext_info, "GPIO ext");
+}
+#else /* CONFIG_GPIO_PCA953X */
+static inline void sb_fx6_gpio_ext_register(void) {}
+#endif /* CONFIG_GPIO_PCA953X */
+
 static void sb_fx6_init(void)
 {
 	baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
@@ -958,6 +976,7 @@ static void sb_fx6_init(void)
 	baseboard_fb_data = sb_fx6_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6_fb_data);
 
+	sb_fx6_gpio_ext_register();
 	sb_fx6_scf0403_lcd_init();
 	sb_fx6_himax_ts_register();
 	sb_fx6_ldb_register();
@@ -998,19 +1017,7 @@ static struct at24_platform_data baseboard_eeprom_pdata = {
 	.setup		= baseboard_eeprom_setup,
 };
 
-#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
-static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
-	.gpio_base = SB_FX6_GPIO_EXT_BASE,
-};
-#endif /* CONFIG_GPIO_PCA953X */
-
 static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
-#if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
-	{
-		I2C_BOARD_INFO("pca9555", 0x26),
-		.platform_data = &sb_fx6_gpio_ext_pdata,
-	},
-#endif /* CONFIG_GPIO_PCA953X */
 	{
 		I2C_BOARD_INFO("at24", 0x50),
 		.platform_data = &baseboard_eeprom_pdata,
