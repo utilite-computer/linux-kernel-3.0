@@ -557,6 +557,208 @@ static void __init sb_fx6_himax_ts_init(void)
 static inline void sb_fx6_himax_ts_init(void) {}
 #endif /* CONFIG_TOUCHSCREEN_HIMAX */
 
+#if defined(CONFIG_FB_MXC_SYNC_PANEL) || \
+	defined(CONFIG_FB_MXC_SYNC_PANEL_MODULE)
+#if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
+static void cm_fx6_hdmi_init(int ipu_id, int disp_id)
+{
+	int hdmi_mux_setting;
+	int max_ipu_id = cpu_is_mx6q() ? 1 : 0;
+
+	if ((ipu_id > max_ipu_id) || (ipu_id < 0)) {
+		pr_err("Invalid IPU select for HDMI: %d. Set to 0\n", ipu_id);
+		ipu_id = 0;
+	}
+
+	if ((disp_id > 1) || (disp_id < 0)) {
+		pr_err("Invalid DI select for HDMI: %d. Set to 0\n", disp_id);
+		disp_id = 0;
+	}
+
+	/* Configure the connection between IPU1/2 and HDMI */
+	hdmi_mux_setting = 2 * ipu_id + disp_id;
+
+	/* GPR3, bits 2-3 = HDMI_MUX_CTL */
+	mxc_iomux_set_gpr_register(3, 2, 2, hdmi_mux_setting);
+
+	/* Set HDMI event as SDMA event2 while Chip version later than TO1.2 */
+	if (hdmi_SDMA_check())
+		mxc_iomux_set_gpr_register(0, 0, 1, 1);
+}
+
+static struct fsl_mxc_hdmi_platform_data cm_fx6_hdmi_data = {
+	.init = cm_fx6_hdmi_init,
+};
+
+static struct fsl_mxc_hdmi_core_platform_data cm_fx6_hdmi_core_data = {
+	.ipu_id		= 0,
+	.disp_id	= 1,
+};
+
+static struct platform_device mxc_hdmi_audio_device = {
+	.name           = "mxc_hdmi_audio",
+	.id             = -1,
+};
+
+static void __init cm_fx6_init_hdmi(void)
+{
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_mxc_hdmi_core(&cm_fx6_hdmi_core_data);
+	if (IS_ERR(pdev)) {
+		pr_err("%s: HDMI core register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+		return;
+	}
+
+	pdev = imx6q_add_mxc_hdmi(&cm_fx6_hdmi_data);
+	if (IS_ERR(pdev))
+		pr_err("%s: HDMI register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+
+}
+
+#else /* CONFIG_FB_MXC_HDMI */
+static inline void cm_fx6_init_hdmi(void) {}
+#endif /* CONFIG_FB_MXC_HDMI */
+
+static struct ipuv3_fb_platform_data cm_fx6_lcd_pdata = {
+	.disp_dev		= "lcd",
+	.interface_pix_fmt	= IPU_PIX_FMT_RGB666,
+	.mode_str		= "SCF04-WVGA",
+	.int_clk		= false,
+};
+
+static struct ipuv3_fb_platform_data cm_fx6_dvi_pdata = {
+	.disp_dev		= "dvi",
+	.interface_pix_fmt	= IPU_PIX_FMT_RGB32,
+	.mode_str		= "1280x800@60",
+	.default_bpp		= 32,
+	.int_clk		= false,
+};
+
+static struct ipuv3_fb_platform_data cm_fx6_hdmi_pdata = {
+	.disp_dev		= "hdmi",
+	.interface_pix_fmt	= IPU_PIX_FMT_RGB32,
+	.mode_str		= "1920x1080@60",
+	.default_bpp		= 32,
+	.int_clk		= false,
+};
+
+static struct ipuv3_fb_platform_data cm_fx6_ldb0_pdata = {
+	.disp_dev		= "ldb",
+	.interface_pix_fmt	= IPU_PIX_FMT_RGB666,
+	.mode_str		= "1366x768M-18@60",
+	.default_bpp		= 18,
+	.int_clk		= false,
+};
+
+static struct ipuv3_fb_platform_data cm_fx6_ldb1_pdata = {
+	.disp_dev		= "ldb",
+	.interface_pix_fmt	= IPU_PIX_FMT_RGB666,
+	.mode_str		= "1280x800M-18@60",
+	.default_bpp		= 18,
+	.int_clk		= false,
+};
+
+static struct ipuv3_fb_platform_data *sb_fx6_fb_data[] = {
+	&cm_fx6_lcd_pdata,
+	&cm_fx6_hdmi_pdata,
+	&cm_fx6_ldb0_pdata,
+	&cm_fx6_ldb1_pdata,
+};
+
+static struct ipuv3_fb_platform_data *sb_fx6m_fb_data[] = {
+	&cm_fx6_hdmi_pdata,
+	&cm_fx6_dvi_pdata,
+};
+
+static struct ipuv3_fb_platform_data **baseboard_fb_data;
+static int baseboard_fb_data_size;
+
+static struct fsl_mxc_lcd_platform_data cm_fx6_lcdif_data = {
+	.ipu_id		= 0,
+	.disp_id	= 0,
+	.default_ifmt	= IPU_PIX_FMT_RGB666,
+};
+
+static struct fsl_mxc_ldb_platform_data cm_fx6_ldb0_data = {
+	.ipu_id		= 1,
+	.disp_id	= 0,
+	.ext_ref	= 1,
+	.mode		= LDB_SEP0,
+	.sec_ipu_id	= 1,
+	.sec_disp_id	= 1,
+};
+
+static struct fsl_mxc_ldb_platform_data cm_fx6_ldb1_data = {
+	.ipu_id		= 1,
+	.disp_id	= 1,
+	.ext_ref	= 1,
+	.mode		= LDB_SEP1,
+	.sec_ipu_id	= 1,
+	.sec_disp_id	= 0,
+};
+
+static struct imx_ipuv3_platform_data ipu_data[] = {
+	{
+		.rev		= 4,
+		.csi_clk[0]	= "clko_clk",
+	}, {
+		.rev		= 4,
+		.csi_clk[0]	= "clko_clk",
+	},
+};
+
+static void __init cm_fx6_init_ipu(void)
+{
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_ipuv3(0, &ipu_data[0]);
+	if (IS_ERR(pdev)) {
+		pr_err("%s: IPU 0 register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+		return;
+	}
+
+	if (cpu_is_mx6q()) {
+		pdev = imx6q_add_ipuv3(1, &ipu_data[1]);
+		if (IS_ERR(pdev)) {
+			pr_err("%s: IPU 1 register failed: %ld\n",
+				   __func__, PTR_ERR(pdev));
+		return;
+		}
+	}
+}
+
+static int __init cm_fx6_init_display(void)
+{
+	int i;
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_vdoa();
+	if (IS_ERR(pdev))
+		pr_err("%s: VDOA register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+
+	pdev = imx6q_add_lcdif(&cm_fx6_lcdif_data);
+	if (IS_ERR(pdev))
+		pr_err("%s: lcd interface register failed: %ld\n",
+		       __func__, PTR_ERR(pdev));
+
+	for (i = 0; i < baseboard_fb_data_size; i++) {
+		pdev = imx6q_add_ipuv3fb(i, baseboard_fb_data[i]);
+		if (IS_ERR(pdev))
+			pr_err("%s: fb%d register failed: %ld\n",
+				   __func__, i, PTR_ERR(pdev));
+	}
+
+	return 0;
+}
+#else /* CONFIG_FB_MXC_SYNC_PANEL */
+static inline void cm_fx6_init_display(void) {}
+#endif /* CONFIG_FB_MXC_SYNC_PANEL */
+
 #if defined(CONFIG_I2C_IMX) || defined(CONFIG_I2C_IMX_MODULE)
 /* EEPROM layout */
 #define EEPROM_1ST_MAC_OFF		4
@@ -714,6 +916,21 @@ static void sb_fx6_himax_ts_register(void)
 static inline void sb_fx6_himax_ts_register(void) {}
 #endif /* CONFIG_TOUCHSCREEN_HIMAX */
 
+static void sb_fx6_ldb_register(void)
+{
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_ldb(0, &cm_fx6_ldb0_data);
+	if (IS_ERR(pdev))
+		pr_err("%s: ldb interface register failed: %ld\n",
+			__func__, PTR_ERR(pdev));
+
+	pdev = imx6q_add_ldb(1, &cm_fx6_ldb1_data);
+	if (IS_ERR(pdev))
+		pr_err("%s: ldb1 interface register failed: %ld\n",
+			__func__, PTR_ERR(pdev));
+}
+
 static void sb_fx6_init(void)
 {
 	baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
@@ -729,8 +946,18 @@ static void sb_fx6_init(void)
 
 	baseboard_pcie_data.pcie_pwr_en = SB_FX6_PCIE_MUX_PWR;
 
+	baseboard_fb_data = sb_fx6_fb_data;
+	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6_fb_data);
+
 	sb_fx6_scf0403_lcd_init();
 	sb_fx6_himax_ts_register();
+	sb_fx6_ldb_register();
+}
+
+static void sb_fx6m_init(void)
+{
+	baseboard_fb_data = sb_fx6m_fb_data;
+	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
 }
 
 static struct igb_platform_data baseboard_igb_pdata;
@@ -741,8 +968,11 @@ static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
 	unsigned char baseboard[EEPROM_BOARD_NAME_LEN];
 
 	eeprom_read_board_name(mem_acc, baseboard);
-	if (strncmp(baseboard, "SB-FX6m", EEPROM_BOARD_NAME_LEN) != 0)
+	if (strncmp(baseboard, "SB-FX6m", EEPROM_BOARD_NAME_LEN) == 0)
+		sb_fx6m_init();
+	else
 		sb_fx6_init();
+
 
 	eeprom_read_mac_address(mem_acc, baseboard_igb_pdata.mac_address);
 	igb_set_platform_data(&baseboard_igb_pdata);
@@ -1213,193 +1443,6 @@ static void __init cm_fx6_init_sata(void)
 #else /* SATA_AHCI_PLATFORM */
 static inline void cm_fx6_init_sata(void) {}
 #endif /* SATA_AHCI_PLATFORM */
-
-#if defined(CONFIG_FB_MXC_SYNC_PANEL) || \
-	defined(CONFIG_FB_MXC_SYNC_PANEL_MODULE)
-#if defined(CONFIG_FB_MXC_HDMI) || defined(CONFIG_FB_MXC_HDMI_MODULE)
-static void cm_fx6_hdmi_init(int ipu_id, int disp_id)
-{
-	int hdmi_mux_setting;
-	int max_ipu_id = cpu_is_mx6q() ? 1 : 0;
-
-	if ((ipu_id > max_ipu_id) || (ipu_id < 0)) {
-		pr_err("Invalid IPU select for HDMI: %d. Set to 0\n", ipu_id);
-		ipu_id = 0;
-	}
-
-	if ((disp_id > 1) || (disp_id < 0)) {
-		pr_err("Invalid DI select for HDMI: %d. Set to 0\n", disp_id);
-		disp_id = 0;
-	}
-
-	/* Configure the connection between IPU1/2 and HDMI */
-	hdmi_mux_setting = 2 * ipu_id + disp_id;
-
-	/* GPR3, bits 2-3 = HDMI_MUX_CTL */
-	mxc_iomux_set_gpr_register(3, 2, 2, hdmi_mux_setting);
-
-	/* Set HDMI event as SDMA event2 while Chip version later than TO1.2 */
-	if (hdmi_SDMA_check())
-		mxc_iomux_set_gpr_register(0, 0, 1, 1);
-}
-
-static struct fsl_mxc_hdmi_platform_data cm_fx6_hdmi_data = {
-	.init = cm_fx6_hdmi_init,
-};
-
-static struct fsl_mxc_hdmi_core_platform_data cm_fx6_hdmi_core_data = {
-	.ipu_id		= 0,
-	.disp_id	= 1,
-};
-
-static struct platform_device mxc_hdmi_audio_device = {
-	.name           = "mxc_hdmi_audio",
-	.id             = -1,
-};
-
-static void __init cm_fx6_init_hdmi(void)
-{
-	struct platform_device * pdev;
-
-	pdev = imx6q_add_mxc_hdmi_core(&cm_fx6_hdmi_core_data);
-	if (IS_ERR(pdev)) {
-		pr_err("%s: HDMI core register failed: %ld\n",
-		       __func__, PTR_ERR(pdev));
-		return;
-	}
-
-	pdev = imx6q_add_mxc_hdmi(&cm_fx6_hdmi_data);
-	if (IS_ERR(pdev))
-		pr_err("%s: HDMI register failed: %ld\n",
-		       __func__, PTR_ERR(pdev));
-
-}
-
-#else /* CONFIG_FB_MXC_HDMI */
-static inline void cm_fx6_init_hdmi(void) {}
-#endif /* CONFIG_FB_MXC_HDMI */
-
-static struct ipuv3_fb_platform_data cm_fx6_fb_data[] = {
-	{
-		.disp_dev		= "lcd",
-		.interface_pix_fmt	= IPU_PIX_FMT_RGB666,
-		.mode_str		= "SCF04-WVGA",
-		.int_clk		= false,
-	}, {
-		.disp_dev               = "hdmi",
-		.interface_pix_fmt      = IPU_PIX_FMT_RGB32,
-		.mode_str               = "1920x1080@60",
-		.default_bpp            = 32,
-		.int_clk                = false,
-	}, {
-		.disp_dev          = "ldb",
-		.interface_pix_fmt = IPU_PIX_FMT_RGB666,
-		.mode_str          = "1366x768M-18@60",
-		.default_bpp       = 18,
-		.int_clk           = false,
-	}, {
-		.disp_dev          = "ldb",
-		.interface_pix_fmt = IPU_PIX_FMT_RGB666,
-		.mode_str          = "1280x800M-18@60",
-		.default_bpp       = 18,
-		.int_clk           = false,
-	}
-};
-
-
-static struct fsl_mxc_lcd_platform_data cm_fx6_lcdif_data = {
-	.ipu_id		= 0,
-	.disp_id	= 0,
-	.default_ifmt	= IPU_PIX_FMT_RGB666,
-};
-
-static struct fsl_mxc_ldb_platform_data cm_fx6_ldb_data = {
-	.ipu_id      = 1,
-	.disp_id     = 0,
-	.ext_ref     = 1,
-	.mode        = LDB_SEP0,
-	.sec_ipu_id  = 1,
-	.sec_disp_id = 1,
-};
-
-static struct fsl_mxc_ldb_platform_data cm_fx6_ldb_data1 = {
-	.ipu_id      = 1,
-	.disp_id     = 1,
-	.ext_ref     = 1,
-	.mode        = LDB_SEP1,
-	.sec_ipu_id  = 1,
-	.sec_disp_id = 0,
-};
-
-static struct imx_ipuv3_platform_data ipu_data[] = {
-	{
-		.rev		= 4,
-		.csi_clk[0]	= "clko_clk",
-	}, {
-		.rev		= 4,
-		.csi_clk[0]	= "clko_clk",
-	},
-};
-
-static void __init cm_fx6_init_ipu(void)
-{
-	struct platform_device * pdev;
-
-	pdev = imx6q_add_ipuv3(0, &ipu_data[0]);
-	if (IS_ERR(pdev)) {
-		pr_err("%s: IPU 0 register failed: %ld\n",
-		       __func__, PTR_ERR(pdev));
-		return;
-	}
-
-	if (cpu_is_mx6q()) {
-		pdev = imx6q_add_ipuv3(1, &ipu_data[1]);
-		if (IS_ERR(pdev)) {
-			pr_err("%s: IPU 1 register failed: %ld\n",
-				   __func__, PTR_ERR(pdev));
-		return;
-		}
-	}
-}
-
-static int __init cm_fx6_init_display(void)
-{
-	int i;
-	struct platform_device * pdev;
-
-	pdev = imx6q_add_vdoa();
-	if (IS_ERR(pdev))
-		pr_err("%s: VDOA register failed: %ld\n",
-		       __func__, PTR_ERR(pdev));
-
-	pdev = imx6q_add_lcdif(&cm_fx6_lcdif_data);
-	if (IS_ERR(pdev))
-		pr_err("%s: lcd interface register failed: %ld\n",
-		       __func__, PTR_ERR(pdev));
-
-	pdev = imx6q_add_ldb(0, &cm_fx6_ldb_data);
-	if (IS_ERR(pdev))
-		pr_err("%s: ldb interface register failed: %ld\n",
-			__func__, PTR_ERR(pdev));
-
-	pdev = imx6q_add_ldb(1, &cm_fx6_ldb_data1);
-	if (IS_ERR(pdev))
-		pr_err("%s: ldb1 interface register failed: %ld\n",
-			__func__, PTR_ERR(pdev));
-
-
-	for (i = 0; i < ARRAY_SIZE(cm_fx6_fb_data); i++) {
-		pdev = imx6q_add_ipuv3fb(i, &cm_fx6_fb_data[i]);
-		if (IS_ERR(pdev))
-			pr_err("%s: fb%d register failed: %ld\n",
-				   __func__, i, PTR_ERR(pdev));
-	}
-
-	return 0;
-}
-#else /* CONFIG_FB_MXC_SYNC_PANEL */
-static inline void cm_fx6_init_display(void) {}
-#endif /* CONFIG_FB_MXC_SYNC_PANEL */
 
 #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
 static struct platform_pwm_backlight_data sb_fx6_pwm_backlight_data = {
