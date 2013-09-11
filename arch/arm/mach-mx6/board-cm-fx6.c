@@ -881,6 +881,15 @@ static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 #endif /* CONFIG_FB_MXC_HDMI */
 };
 
+static struct i2c_board_info sb_fx6m_rtc_info = {
+	I2C_BOARD_INFO("em3027", 0x56),
+};
+
+static void sb_fx6m_rtc_register(void)
+{
+	baseboard_i2c_device_register(3, &sb_fx6m_rtc_info, "em3027 rtc");
+}
+
 static struct i2c_board_info cm_fx6_i2c2_board_info[] __initdata = {
 	{
 		I2C_BOARD_INFO("at24", 0x50),
@@ -958,6 +967,8 @@ static void sb_fx6m_init(void)
 {
 	baseboard_fb_data = sb_fx6m_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
+
+	sb_fx6m_rtc_register();
 }
 
 static struct igb_platform_data baseboard_igb_pdata;
