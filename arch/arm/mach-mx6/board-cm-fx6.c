@@ -1502,29 +1502,29 @@ static const struct pm_platform_data mx6_arm2_pm_data __initconst = {
 	.suspend_exit	= arm2_suspend_exit,
 };
 
-static struct regulator_consumer_supply arm2_vmmc_consumers[] = {
+static struct regulator_consumer_supply cm_fx6_vmmc_consumers[] = {
 	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.1"),
 	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.2"),
 	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.3"),
 };
 
-static struct regulator_init_data arm2_vmmc_init = {
-	.num_consumer_supplies = ARRAY_SIZE(arm2_vmmc_consumers),
-	.consumer_supplies = arm2_vmmc_consumers,
+static struct regulator_init_data cm_fx6_vmmc_init = {
+	.num_consumer_supplies = ARRAY_SIZE(cm_fx6_vmmc_consumers),
+	.consumer_supplies = cm_fx6_vmmc_consumers,
 };
 
-static struct fixed_voltage_config arm2_vmmc_reg_config = {
+static struct fixed_voltage_config cm_fx6_vmmc_reg_config = {
 	.supply_name	= "vmmc",
 	.microvolts	= 3300000,
 	.gpio		= -1,
-	.init_data	= &arm2_vmmc_init,
+	.init_data	= &cm_fx6_vmmc_init,
 };
 
-static struct platform_device arm2_vmmc_reg_devices = {
+static struct platform_device cm_fx6_vmmc_reg_device = {
 	.name		= "reg-fixed-voltage",
 	.id		= 0,
 	.dev		= {
-		.platform_data = &arm2_vmmc_reg_config,
+		.platform_data = &cm_fx6_vmmc_reg_config,
 	},
 };
 
@@ -1806,7 +1806,7 @@ static void __init cm_fx6_init(void)
 
 	imx6q_add_vpu();
 	cm_fx6_init_usb();
-	platform_device_register(&arm2_vmmc_reg_devices);
+	platform_device_register(&cm_fx6_vmmc_reg_device);
 	mx6_cpu_regulator_init();
 
 	imx_asrc_data.asrc_core_clk = clk_get(NULL, "asrc_clk");
