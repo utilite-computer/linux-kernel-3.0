@@ -1503,9 +1503,8 @@ static const struct pm_platform_data mx6_arm2_pm_data __initconst = {
 };
 
 static struct regulator_consumer_supply cm_fx6_vmmc_consumers[] = {
-	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.1"),
+	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.0"),
 	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.2"),
-	REGULATOR_SUPPLY("vmmc", "sdhci-esdhc-imx.3"),
 };
 
 static struct regulator_init_data cm_fx6_vmmc_init = {
