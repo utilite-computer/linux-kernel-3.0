@@ -1747,6 +1747,19 @@ static void cm_fx6_setup_system_rev(void)
 	system_rev = fsl_system_rev;
 }
 
+#define MX6_SNVS_LPCR_REG	0x38
+
+static void mx6_snvs_poweroff(void)
+{
+	void __iomem *mx6_snvs_base = MX6_IO_ADDRESS(MX6Q_SNVS_BASE_ADDR);
+	u32 value;
+
+	value = readl(mx6_snvs_base + MX6_SNVS_LPCR_REG);
+	/* set TOP and DP_EN bits */
+	value |= 0x0060;
+	writel(value, mx6_snvs_base + MX6_SNVS_LPCR_REG);
+}
+
 /*
  * Board specific initialization.
  */
@@ -1788,6 +1801,7 @@ static void __init cm_fx6_init(void)
 
 	imx6q_add_imx_snvs_rtc();
 	imx6q_add_imx_snvs_pwrkey();
+	pm_power_off = mx6_snvs_poweroff;
 	imx6q_add_imx_caam();
 
 	cm_fx6_i2c_init();
