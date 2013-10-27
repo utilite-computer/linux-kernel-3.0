@@ -286,17 +286,11 @@ static const struct anatop_thermal_platform_data cm_fx6_anatop_thermal_data = {
 	.name = "anatop_thermal",
 };
 
-static const struct imxuart_platform_data cm_fx6_uart1_data __initconst = {
-	.flags      = IMXUART_HAVE_RTSCTS | IMXUART_USE_DCEDTE | IMXUART_SDMA,
-	.dma_req_rx = MX6Q_DMA_REQ_UART2_RX,
-	.dma_req_tx = MX6Q_DMA_REQ_UART2_TX,
-};
-
 static inline void cm_fx6_init_uart(void)
 {
 	imx6q_add_imx_uart(0, NULL);
 	imx6q_add_imx_uart(3, NULL);
-	imx6q_add_imx_uart(1, &cm_fx6_uart1_data);
+	imx6q_add_imx_uart(1, NULL);
 	imx6q_add_imx_uart(4, NULL);
 }
 
