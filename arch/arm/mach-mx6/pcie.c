@@ -305,8 +305,8 @@ static int imx_pcie_link_up(void __iomem *dbi_base)
 
 static void imx_pcie_regions_setup(void __iomem *dbi_base)
 {
-	unsigned int i;
 #ifdef CONFIG_PCI_MSI
+	unsigned int i;
 	void __iomem *p = dbi_base + PCIE_PL_MSIC_INT;
 #endif
 
