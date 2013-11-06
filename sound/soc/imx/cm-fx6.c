@@ -160,9 +160,9 @@ static int imx_hifi_hw_params_slv_mode(struct snd_pcm_substream *substream,
 
 	sampling_rate = params_rate(params);
 	channels = params_channels(params);
-	// pr_info("%s:%s  sampling rate = %u  channels = %u \n", __FUNCTION__,
-	// 	(substream->stream == SNDRV_PCM_STREAM_PLAYBACK ? "Playback" : "Capture"),
-	// 	sampling_rate, channels);
+	pr_debug("%s:%s  sampling rate = %u  channels = %u \n", __FUNCTION__,
+		 (substream->stream == SNDRV_PCM_STREAM_PLAYBACK ? "Playback" : "Capture"),
+		 sampling_rate, channels);
 
 	/* set CPU DAI configuration */
 	switch (sampling_rate)
@@ -196,19 +196,8 @@ static int imx_hifi_hw_params_slv_mode(struct snd_pcm_substream *substream,
 
 	/* set i.MX active slot mask */
 	/* S[TR]CCR:DC */
-	switch (channels)
-	{
-	case 2:
-		tx_mask = 0xfffffffc;
-		rx_mask = 0xfffffffc;
-		break;
-	case 1:
-		tx_mask = 0xfffffffe;
-		rx_mask = 0xfffffffe;
-		break;
-	default:
-		return -EINVAL;
-	}
+	tx_mask = ~((1 << channels) - 1);
+	rx_mask = tx_mask;
 	snd_soc_dai_set_tdm_slot(cpu_dai, tx_mask, rx_mask, 2, 32);
 
 
@@ -222,59 +211,48 @@ static int imx_hifi_hw_params_slv_mode(struct snd_pcm_substream *substream,
 	}
 
 
+	/*
+	 * SSI sysclk divider:
+	 * div_2:	/1 or /2
+	 * div_psr:	/1 or /8
+	 * div_pm:	/1 .. /256
+	 */
+	div_2	= 0;
+	div_psr	= 0;
 	switch (sampling_rate)
 	{
 	case 8000:
-		// 1, 1, 12
-		div_2	= 0;
-		div_psr	= 0;
+		// 1x1x12
 		div_pm	= 11;
 		break;
 	case 32000:
-		// 1, 1, 3
-		div_2	= 0;
-		div_psr	= 0;
+		// 1x1x3
 		div_pm	= 2;
 		break;
 	case 48000:
-		// 1, 1, 2
-		div_2	= 0;
-		div_psr	= 0;
+		// 1x1x2
 		div_pm	= 1;
 		break;
 	case 96000:
-		// 1, 1, 1
-		div_2	= 0;
-		div_psr	= 0;
+		// 1x1x1
 		div_pm	= 0;
 		break;
 	case 44100:
-		// 1, 1, 2
-		div_2	= 0;
-		div_psr	= 0;
+		// 1x1x2
 		div_pm	= 1;
 		break;
 	case 88200:
-		// 1, 1, 1
-		div_2	= 0;
-		div_psr	= 0;
+		// 1x1x1
 		div_pm	= 0;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-		snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_TX_DIV_2, (div_2 ? SSI_STCCR_DIV2 : 0));
-		snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_TX_DIV_PSR, (div_psr ? SSI_STCCR_PSR : 0));
-		snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_TX_DIV_PM, div_pm);
-	}
-	else {
-		// capture
-		snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_RX_DIV_2, (div_2 ? SSI_SRCCR_DIV2 : 0));
-		snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_RX_DIV_PSR, (div_psr ? SSI_SRCCR_PSR : 0));
-		snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_RX_DIV_PM, div_pm);
-	}
+	/* sync mode: a single clock controls both playback and capture */
+	snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_TX_DIV_2, (div_2 ? SSI_STCCR_DIV2 : 0));
+	snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_TX_DIV_PSR, (div_psr ? SSI_STCCR_PSR : 0));
+	snd_soc_dai_set_clkdiv(cpu_dai, IMX_SSI_TX_DIV_PM, div_pm);
 
 	/* set codec DAI configuration */
 	dai_format = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
@@ -284,7 +262,6 @@ static int imx_hifi_hw_params_slv_mode(struct snd_pcm_substream *substream,
 	if (ret < 0)
 		return ret;
 
-	/* in slave mode, all it does is mask 'inappropriate clock rates' warning in wm8731.c */
 	ret = snd_soc_dai_set_sysclk(codec_dai,
 				     WM8731_SYSCLK_MCLK,
 				     plat->sysclk,
@@ -327,9 +304,9 @@ static int imx_hifi_hw_params_mst_mode(struct snd_pcm_substream *substream,
 
 	sampling_rate = params_rate(params);
 	channels = params_channels(params);
-	// pr_info("%s:%s  sampling rate = %u  channels = %u \n", __FUNCTION__,
-	// 	(substream->stream == SNDRV_PCM_STREAM_PLAYBACK ? "Playback" : "Capture"),
-	// 	sampling_rate, channels);
+	pr_debug("%s:%s  sampling rate = %u  channels = %u \n", __FUNCTION__,
+		 (substream->stream == SNDRV_PCM_STREAM_PLAYBACK ? "Playback" : "Capture"),
+		 sampling_rate, channels);
 
 	/* set cpu DAI configuration */
 	dai_format = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_IF |
@@ -341,19 +318,8 @@ static int imx_hifi_hw_params_mst_mode(struct snd_pcm_substream *substream,
 
 	/* set i.MX active slot mask */
 	/* S[TR]CCR:DC */
-	switch (channels)
-	{
-	case 2:
-		tx_mask = 0xfffffffc;
-		rx_mask = 0xfffffffc;
-		break;
-	case 1:
-		tx_mask = 0xfffffffe;
-		rx_mask = 0xfffffffe;
-		break;
-	default:
-		return -EINVAL;
-	}
+	tx_mask = ~((1 << channels) - 1);
+	rx_mask = tx_mask;
 	snd_soc_dai_set_tdm_slot(cpu_dai, tx_mask, rx_mask, 2, 32);
 
 	ret = snd_soc_dai_set_sysclk(cpu_dai,
@@ -433,8 +399,18 @@ out_retcode:
 }
 
 /**
- * Configure AUDMUX interconnection between 
+ * Configure AUDMUX interconnection between
  * _slave (CPU side) and _master (codec size)
+ *
+ * When SSI operates in master mode, 5-wire interconnect with
+ * audio codec is required:
+ * TXC  - BCLK
+ * TXD  - DAC data
+ * RXD  - ADC data
+ * TXFS - {DAC|ADC}LRC, i.e. word clock
+ * RXC  - MCLK, i.e. oversampling clock
+ * Audmux is operated in asynchronous mode to enable 6-wire
+ * interface (as opposed to 4-wire interface in sync mode).
  */
 static int imx_audmux_config_slv_mode(int _slave, int _master)
 {
@@ -443,20 +419,31 @@ static int imx_audmux_config_slv_mode(int _slave, int _master)
 	int master = _master - 1;
 
 
-	ptcr = MXC_AUDMUX_V2_PTCR_SYN;
-	pdcr = MXC_AUDMUX_V2_PDCR_RXDSEL(master);
-	mxc_audmux_v2_configure_port(slave, ptcr, pdcr);
-
-	ptcr = MXC_AUDMUX_V2_PTCR_SYN;
-	ptcr |= MXC_AUDMUX_V2_PTCR_TFSDIR |
+	ptcr = MXC_AUDMUX_V2_PTCR_SYN |
+		MXC_AUDMUX_V2_PTCR_TFSDIR |
 		MXC_AUDMUX_V2_PTCR_TFSEL(slave) |
+		MXC_AUDMUX_V2_PTCR_RCLKDIR |
+		MXC_AUDMUX_V2_PTCR_RCSEL(slave | 0x8) |
 		MXC_AUDMUX_V2_PTCR_TCLKDIR |
 		MXC_AUDMUX_V2_PTCR_TCSEL(slave);
-	ptcr |= MXC_AUDMUX_V2_PTCR_RCLKDIR |
-		MXC_AUDMUX_V2_PTCR_RCSEL(8 | slave);
 
 	pdcr = MXC_AUDMUX_V2_PDCR_RXDSEL(slave);
 	mxc_audmux_v2_configure_port(master, ptcr, pdcr);
+	ptcr = ptcr & ~MXC_AUDMUX_V2_PTCR_SYN;
+	mxc_audmux_v2_configure_port(master, ptcr, pdcr);
+
+
+
+	ptcr = MXC_AUDMUX_V2_PTCR_SYN |
+		MXC_AUDMUX_V2_PTCR_RCLKDIR |
+		MXC_AUDMUX_V2_PTCR_RCSEL(master | 0x8) |
+		MXC_AUDMUX_V2_PTCR_TCLKDIR |
+		MXC_AUDMUX_V2_PTCR_TCSEL(master);
+
+	pdcr = MXC_AUDMUX_V2_PDCR_RXDSEL(master);
+	mxc_audmux_v2_configure_port(slave, ptcr, pdcr);
+	ptcr = ptcr & ~MXC_AUDMUX_V2_PTCR_SYN;
+	mxc_audmux_v2_configure_port(slave, ptcr, pdcr);
 
 	return 0;
 }
