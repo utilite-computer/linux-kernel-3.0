@@ -954,6 +954,8 @@ static inline void sb_fx6_gpio_ext_register(void) {}
 
 static void sb_fx6_init(void)
 {
+	pr_info("CM-FX6: Detected SB-FX6 (Eval) base board\n");
+
 	baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
 	baseboard_sd3_data.cd_gpio = SB_FX6_SD3_CD;
 	baseboard_sd3_data.wp_gpio = SB_FX6_SD3_WP;
@@ -979,6 +981,8 @@ static void sb_fx6_init(void)
 
 static void sb_fx6m_init(void)
 {
+	pr_info("CM-FX6: Detected SB-FX6m (Utilite) base board\n");
+
 	baseboard_fb_data = sb_fx6m_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
 
