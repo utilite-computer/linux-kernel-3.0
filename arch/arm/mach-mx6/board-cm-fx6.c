@@ -1877,6 +1877,9 @@ early_param("cm_fx6_v4l", cm_fx6_v4l_setup);
 
 static int __init cm_fx6_init_late(void)
 {
+	if (!machine_is_cm_fx6())
+		return -ENODEV;
+
 	baseboard_dvi_register();
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
