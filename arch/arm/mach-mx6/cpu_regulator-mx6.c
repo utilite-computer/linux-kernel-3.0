@@ -42,6 +42,7 @@ extern struct cpu_op *(*get_cpu_op)(int *op);
 extern unsigned long loops_per_jiffy;
 extern u32 enable_ldo_mode;
 int external_pureg;
+bool initialized;
 
 static inline unsigned long mx6_cpu_jiffies(unsigned long old, u_int div,
 					      u_int mult)
@@ -70,6 +71,12 @@ void mx6_cpu_regulator_init(void)
 	unsigned long old_loops_per_jiffy;
 #endif
 	void __iomem *gpc_base = IO_ADDRESS(GPC_BASE_ADDR);
+
+	if (initialized)
+		return;
+
+	initialized = true;
+
 	external_pureg = 0;
 	/*If internal ldo actived, use internal cpu_* regulator to replace the
 	*regulator ids from board file. If internal ldo bypassed, use the
