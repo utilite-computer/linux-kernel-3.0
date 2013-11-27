@@ -1575,10 +1575,32 @@ static void mxc_hdmi_notify_fb(struct mxc_hdmi *hdmi)
 	dev_dbg(&hdmi->pdev->dev, "%s exit\n", __func__);
 }
 
+static bool mxc_hdmi_reject_videomode(const struct fb_videomode *mode,
+				      struct list_head *head)
+{
+	struct list_head *pos;
+	struct fb_modelist *modelist;
+	struct fb_videomode *m;
+
+	list_for_each(pos, head) {
+		modelist = list_entry(pos, struct fb_modelist, list);
+		m = &modelist->mode;
+		if ((mode->xres == m->xres) &&
+		    (mode->yres == m->yres) &&
+		    (mode->refresh == m->refresh)) {
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static void mxc_hdmi_edid_rebuild_modelist(struct mxc_hdmi *hdmi)
 {
 	int i;
 	struct fb_videomode *mode;
+	struct list_head cea_modelist;
 
 	dev_dbg(&hdmi->pdev->dev, "%s\n", __func__);
 
@@ -1586,6 +1608,8 @@ static void mxc_hdmi_edid_rebuild_modelist(struct mxc_hdmi *hdmi)
 
 	fb_destroy_modelist(&hdmi->fbi->modelist);
 	fb_add_videomode(&vga_mode, &hdmi->fbi->modelist);
+
+	INIT_LIST_HEAD(&cea_modelist);
 
 	for (i = 0; i < hdmi->fbi->monspecs.modedb_len; i++) {
 		/*
@@ -1595,8 +1619,32 @@ static void mxc_hdmi_edid_rebuild_modelist(struct mxc_hdmi *hdmi)
 		 */
 		mode = &hdmi->fbi->monspecs.modedb[i];
 
-		if (!(mode->vmode & FB_VMODE_INTERLACED) &&
-				(mxc_edid_mode_to_vic(mode) != 0)) {
+		if (!(mode->vmode & FB_VMODE_INTERLACED)
+		    && (mxc_edid_mode_to_vic(mode) != 0)) {
+
+			dev_dbg(&hdmi->pdev->dev, "Added mode %d:", i);
+			dev_dbg(&hdmi->pdev->dev,
+				"xres = %d, yres = %d, freq = %d, vmode = %d, flag = %d\n",
+				hdmi->fbi->monspecs.modedb[i].xres,
+				hdmi->fbi->monspecs.modedb[i].yres,
+				hdmi->fbi->monspecs.modedb[i].refresh,
+				hdmi->fbi->monspecs.modedb[i].vmode,
+				hdmi->fbi->monspecs.modedb[i].flag);
+
+			fb_add_videomode(mode, &hdmi->fbi->modelist);
+			fb_add_videomode(mode, &cea_modelist);
+		}
+	}
+	/*
+	 * Add the rest of the non-CEA modes to the modelist,
+	 * rejecting modes that have a CEA match.
+	 */
+	for (i = 0; i < hdmi->fbi->monspecs.modedb_len; i++) {
+		mode = &hdmi->fbi->monspecs.modedb[i];
+
+		if (!(mode->vmode & FB_VMODE_INTERLACED)
+		    && (mxc_edid_mode_to_vic(mode) == 0)
+		    && !mxc_hdmi_reject_videomode(mode, &cea_modelist)) {
 
 			dev_dbg(&hdmi->pdev->dev, "Added mode %d:", i);
 			dev_dbg(&hdmi->pdev->dev,
@@ -1610,6 +1658,8 @@ static void mxc_hdmi_edid_rebuild_modelist(struct mxc_hdmi *hdmi)
 			fb_add_videomode(mode, &hdmi->fbi->modelist);
 		}
 	}
+
+	fb_destroy_modelist(&cea_modelist);
 
 	console_unlock();
 }
