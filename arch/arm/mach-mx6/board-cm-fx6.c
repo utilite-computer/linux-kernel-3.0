@@ -1747,13 +1747,6 @@ static void __init cm_fx6_init(void)
 	BUG_ON(!common_pads);
 	mxc_iomux_v3_setup_multiple_pads(common_pads, common_pads_cnt);
 
-	/*
-	 * the following is the common devices support on the shared ARM2 boards
-	 * Since i.MX6DQ/DL share the same memory/Register layout, we don't
-	 * need to diff the i.MX6DQ or i.MX6DL here. We can simply use the
-	 * mx6q_add_features() for the shared devices. For which only exist
-	 * on each indivual SOC, we can use cpu_is_mx6q/6dl() to diff it.
-	 */
 	gp_reg_id = arm2_dvfscore_data.reg_id;
 	soc_reg_id = arm2_dvfscore_data.soc_id;
 	pu_reg_id = arm2_dvfscore_data.pu_id;
