@@ -16,3 +16,4 @@
 #define CPU_AT_1_2GHz		3
 
 void mx6_cpu_op_init(void);
+struct cpu_op *mx6_get_cpu_op(int *op);

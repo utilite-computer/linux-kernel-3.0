@@ -61,6 +61,7 @@
 
 #include <mach/common.h>
 #include <mach/hardware.h>
+#include <mach/mxc.h>
 #include <mach/mxc_dvfs.h>
 #include <mach/memory.h>
 #include <mach/imx-uart.h>
@@ -1867,6 +1868,26 @@ static int __init cm_fx6_init_late(void)
 }
 device_initcall_sync(cm_fx6_init_late);
 
+#define CM_FX6_MIN_SOC_VOLTAGE	1250000
+#define CM_FX6_MIN_PU_VOLTAGE	1250000
+
+static void cm_fx6_adjust_cpu_op(void)
+{
+	struct cpu_op *op;
+	int num;
+
+	op = mx6_get_cpu_op(&num);
+	if (!op)
+		return;
+
+	for (num--; num >= 0; num--) {
+		if (op[num].soc_voltage < CM_FX6_MIN_SOC_VOLTAGE)
+			op[num].soc_voltage = CM_FX6_MIN_SOC_VOLTAGE;
+		if (op[num].pu_voltage < CM_FX6_MIN_PU_VOLTAGE)
+			op[num].pu_voltage = CM_FX6_MIN_PU_VOLTAGE;
+	}
+}
+
 extern void __iomem *twd_base;
 
 static void __init cm_fx6_timer_init(void)
@@ -1876,6 +1897,7 @@ static void __init cm_fx6_timer_init(void)
 	twd_base = ioremap(LOCAL_TWD_ADDR, SZ_256);
 	BUG_ON(!twd_base);
 #endif
+	cm_fx6_adjust_cpu_op();
 	mx6_clocks_init(32768, 24000000, 0, 0);
 
 	uart_clk = clk_get_sys("imx-uart.3", NULL);
