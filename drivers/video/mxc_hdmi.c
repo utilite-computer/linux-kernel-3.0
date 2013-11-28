@@ -1926,7 +1926,12 @@ static void mxc_hdmi_setup(struct mxc_hdmi *hdmi, unsigned long event)
 		mxc_hdmi_phy_init(hdmi);
 		return;
 	}
-	dev_dbg(&hdmi->pdev->dev, "%s - video mode changed\n", __func__);
+
+	dev_dbg(&hdmi->pdev->dev, "%s: video mode changed: "
+		"%ux%u@%u-%u -> %ux%u@%u-%u \n", __func__,
+		hdmi->previous_mode.xres, hdmi->previous_mode.yres,
+		hdmi->previous_mode.refresh, hdmi->previous_mode.pixclock,
+		m.xres, m.yres, m.refresh, m.pixclock);
 
 	/* Save mode as 'previous_mode' so that we can know if mode changed. */
 	memcpy(&hdmi->previous_mode, &m, sizeof(struct fb_videomode));
