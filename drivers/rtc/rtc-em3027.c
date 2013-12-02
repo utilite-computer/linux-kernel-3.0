@@ -317,6 +317,7 @@ static int em3027_probe(struct i2c_client *client,
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
 		return -ENODEV;
 
+	device_init_wakeup(&client->dev, client->irq > 0);
 	rtc = rtc_device_register(em3027_driver.driver.name, &client->dev,
 				  &em3027_rtc_ops, THIS_MODULE);
 	if (IS_ERR(rtc))
@@ -380,14 +381,46 @@ static int em3027_remove(struct i2c_client *client)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+static int em3027_suspend(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+
+	if (device_may_wakeup(&client->dev))
+		enable_irq_wake(client->irq);
+
+	return 0;
+}
+
+static int em3027_resume(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+
+	if (device_may_wakeup(&client->dev))
+		disable_irq_wake(client->irq);
+
+	return 0;
+}
+
+#else
+#define em3027_suspend	NULL
+#define em3027_resume	NULL
+#endif
+
 static struct i2c_device_id em3027_id[] = {
 	{ "em3027", 0 },
 	{ }
 };
 
+static const struct dev_pm_ops em3027_pm_ops = {
+	.suspend = em3027_suspend,
+	.resume = em3027_resume,
+};
+
 static struct i2c_driver em3027_driver = {
 	.driver = {
 		.name = "rtc-em3027",
+		.pm = &em3027_pm_ops,
 	},
 	.probe = em3027_probe,
 	.remove = em3027_remove,
