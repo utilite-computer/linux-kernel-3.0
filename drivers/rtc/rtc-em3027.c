@@ -40,23 +40,64 @@
 
 static struct i2c_driver em3027_driver;
 
+
+/**
+ * Read one or more consequent registers, starting with 'addr'
+ *
+ * The starting address is written to the device,
+ * then the register values are read back.
+ */
+static int em3027_read_register(struct i2c_client *client,
+				unsigned char addr,
+				unsigned char *buf,
+				size_t count)
+{
+	struct i2c_msg msgs[] = {
+		{client->addr, 0, 1, &addr},
+		{client->addr, I2C_M_RD, count, buf},
+	};
+
+	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
+		dev_err(&client->dev, "%s: could not read register %02x \n",
+			__func__, addr);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+/**
+ * Write one or more registers, starting with 'addr'
+ *
+ * The starting address is written first,
+ * then the register values.
+ * Since the address is 'buf[0]', 'count' is greater by 1
+ * than it would be in reading the same data set.
+ */
+static int em3027_write_register(struct i2c_client *client,
+				 unsigned char *buf,
+				 size_t count)
+{
+	struct i2c_msg msg = {client->addr, 0, count, buf};
+
+	if (i2c_transfer(client->adapter, &msg, 1) != 1) {
+		dev_err(&client->dev, "%s: could not write register %02x \n",
+			__func__, buf[0]);
+		return -EIO;
+	}
+
+	return 0;
+}
+
 static int em3027_get_time(struct device *dev, struct rtc_time *tm)
 {
 	struct i2c_client *client = to_i2c_client(dev);
-
-	unsigned char addr = EM3027_REG_WATCH_SEC;
 	unsigned char buf[7];
+	int err;
 
-	struct i2c_msg msgs[] = {
-		{client->addr, 0, 1, &addr},		/* setup read addr */
-		{client->addr, I2C_M_RD, 7, buf},	/* read time/date */
-	};
-
-	/* read time/date registers */
-	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-		dev_err(&client->dev, "%s: read error\n", __func__);
-		return -EIO;
-	}
+	err = em3027_read_register(client, EM3027_REG_WATCH_SEC, buf, 7);
+	if (err)
+		return err;
 
 	tm->tm_sec	= bcd2bin(buf[0]);
 	tm->tm_min	= bcd2bin(buf[1]);
@@ -74,10 +115,6 @@ static int em3027_set_time(struct device *dev, struct rtc_time *tm)
 	struct i2c_client *client = to_i2c_client(dev);
 	unsigned char buf[8];
 
-	struct i2c_msg msg = {
-		client->addr, 0, 8, buf,	/* write time/date */
-	};
-
 	buf[0] = EM3027_REG_WATCH_SEC;
 	buf[1] = bin2bcd(tm->tm_sec);
 	buf[2] = bin2bcd(tm->tm_min);
@@ -87,13 +124,7 @@ static int em3027_set_time(struct device *dev, struct rtc_time *tm)
 	buf[6] = bin2bcd(tm->tm_mon);
 	buf[7] = bin2bcd(tm->tm_year % 100);
 
-	/* write time/date registers */
-	if ((i2c_transfer(client->adapter, &msg, 1)) != 1) {
-		dev_err(&client->dev, "%s: write error\n", __func__);
-		return -EIO;
-	}
-
-	return 0;
+	return em3027_write_register(client, buf, 8);
 }
 
 static const struct rtc_class_ops em3027_rtc_ops = {
