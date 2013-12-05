@@ -14,6 +14,7 @@
 #include <linux/i2c.h>
 #include <linux/rtc.h>
 #include <linux/bcd.h>
+#include <linux/rtc/rtc-em3027.h>
 
 /* Registers */
 #define EM3027_REG_ON_OFF_CTRL		0x00
@@ -37,6 +38,10 @@
 #define EM3027_REG_ALARM_DAY		0x14
 #define EM3027_REG_ALARM_MON		0x15
 #define EM3027_REG_ALARM_YEAR		0x16
+
+#define EM3027_REG_EEPROM_CTRL		0x30
+
+#define EM3027_TRICKLE_CHARGER_MASK	0xf0
 
 static struct i2c_driver em3027_driver;
 
@@ -89,6 +94,34 @@ static int em3027_write_register(struct i2c_client *client,
 	return 0;
 }
 
+/**
+ * Update particular bits in a EEPROM backed register
+ * Do not burn EEPROM if unnecessary
+ */
+static int em3027_update_eeprom_register(struct i2c_client *client,
+					 unsigned char addr,
+					 unsigned char mask,
+					 unsigned char value)
+{
+	int err;
+	unsigned char old_value;
+	unsigned char buf[2];
+
+	err = em3027_read_register(client, addr, &old_value, 1);
+	if (err)
+		return err;
+
+	buf[0] = addr;
+	buf[1] = (old_value & ~mask) | (value & mask);
+	if (old_value != buf[1]) {
+		dev_dbg(&client->dev, "%s: [%02x] %02x -> %02x \n", __func__,
+			addr, old_value, buf[1]);
+		err = em3027_write_register(client, buf, ARRAY_SIZE(buf));
+	}
+
+	return err;
+}
+
 static int em3027_get_time(struct device *dev, struct rtc_time *tm)
 {
 	struct i2c_client *client = to_i2c_client(dev);
@@ -136,6 +169,8 @@ static int em3027_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
 	struct rtc_device *rtc;
+	struct em3027_platform_data *pdata = client->dev.platform_data;
+	int err;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
 		return -ENODEV;
@@ -147,7 +182,22 @@ static int em3027_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, rtc);
 
+	if (pdata) {
+		/* select trickle charger resistors */
+		err = em3027_update_eeprom_register(client,
+						EM3027_REG_EEPROM_CTRL,
+						EM3027_TRICKLE_CHARGER_MASK,
+						pdata->charger_resistor_sel);
+		if (err)
+			goto fail;
+	}
+
 	return 0;
+
+fail:
+	rtc_device_unregister(rtc);
+
+	return err;
 }
 
 static int em3027_remove(struct i2c_client *client)
