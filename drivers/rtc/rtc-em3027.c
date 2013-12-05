@@ -138,8 +138,8 @@ static struct i2c_driver em3027_driver = {
 	.driver = {
 		.name = "rtc-em3027",
 	},
-	.probe = &em3027_probe,
-	.remove = &em3027_remove,
+	.probe = em3027_probe,
+	.remove = em3027_remove,
 	.id_table = em3027_id,
 };
 
