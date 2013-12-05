@@ -16,27 +16,27 @@
 #include <linux/bcd.h>
 
 /* Registers */
-#define EM3027_REG_ON_OFF_CTRL	0x00
-#define EM3027_REG_IRQ_CTRL	0x01
-#define EM3027_REG_IRQ_FLAGS	0x02
-#define EM3027_REG_STATUS	0x03
-#define EM3027_REG_RST_CTRL	0x04
+#define EM3027_REG_ON_OFF_CTRL		0x00
+#define EM3027_REG_IRQ_CTRL		0x01
+#define EM3027_REG_IRQ_FLAGS		0x02
+#define EM3027_REG_STATUS		0x03
+#define EM3027_REG_RST_CTRL		0x04
 
-#define EM3027_REG_WATCH_SEC	0x08
-#define EM3027_REG_WATCH_MIN	0x09
-#define EM3027_REG_WATCH_HOUR	0x0a
-#define EM3027_REG_WATCH_DATE	0x0b
-#define EM3027_REG_WATCH_DAY	0x0c
-#define EM3027_REG_WATCH_MON	0x0d
-#define EM3027_REG_WATCH_YEAR	0x0e
+#define EM3027_REG_WATCH_SEC		0x08
+#define EM3027_REG_WATCH_MIN		0x09
+#define EM3027_REG_WATCH_HOUR		0x0a
+#define EM3027_REG_WATCH_DATE		0x0b
+#define EM3027_REG_WATCH_DAY		0x0c
+#define EM3027_REG_WATCH_MON		0x0d
+#define EM3027_REG_WATCH_YEAR		0x0e
 
-#define EM3027_REG_ALARM_SEC	0x10
-#define EM3027_REG_ALARM_MIN	0x11
-#define EM3027_REG_ALARM_HOUR	0x12
-#define EM3027_REG_ALARM_DATE	0x13
-#define EM3027_REG_ALARM_DAY	0x14
-#define EM3027_REG_ALARM_MON	0x15
-#define EM3027_REG_ALARM_YEAR	0x16
+#define EM3027_REG_ALARM_SEC		0x10
+#define EM3027_REG_ALARM_MIN		0x11
+#define EM3027_REG_ALARM_HOUR		0x12
+#define EM3027_REG_ALARM_DATE		0x13
+#define EM3027_REG_ALARM_DAY		0x14
+#define EM3027_REG_ALARM_MON		0x15
+#define EM3027_REG_ALARM_YEAR		0x16
 
 static struct i2c_driver em3027_driver;
 
@@ -136,7 +136,7 @@ static struct i2c_device_id em3027_id[] = {
 
 static struct i2c_driver em3027_driver = {
 	.driver = {
-		   .name = "rtc-em3027",
+		.name = "rtc-em3027",
 	},
 	.probe = &em3027_probe,
 	.remove = &em3027_remove,
