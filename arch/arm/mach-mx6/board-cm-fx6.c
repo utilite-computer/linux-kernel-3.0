@@ -57,6 +57,7 @@
 #include <linux/mfd/mxc-hdmi-core.h>
 #include <linux/igb.h>
 #include <linux/gpio-i2cmux.h>
+#include <linux/rtc/rtc-em3027.h>
 
 #include <mach/common.h>
 #include <mach/hardware.h>
@@ -117,6 +118,7 @@
 #define SB_FX6_PCIE_MUX_PWR		IMX_GPIO_NR(8, 4)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
 
+#define SB_FX6M_EM3027_IRQ		IMX_GPIO_NR(1, 1)
 #define SB_FX6M_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
 #define SB_FX6M_DVI_HPD			IMX_GPIO_NR(1, 4)
 
@@ -772,12 +774,32 @@ static struct i2c_board_info cm_fx6_i2c1_board_info[] __initdata = {
 #endif /* CONFIG_FB_MXC_HDMI */
 };
 
+static struct em3027_platform_data sb_fx6m_rtc_pdata = {
+	.charger_resistor_sel = EM3027_TRICKLE_CHARGER_1_5K,
+};
+
 static struct i2c_board_info sb_fx6m_rtc_info = {
 	I2C_BOARD_INFO("em3027", 0x56),
+	.irq = gpio_to_irq(SB_FX6M_EM3027_IRQ),
+	.platform_data = &sb_fx6m_rtc_pdata,
 };
 
 static void sb_fx6m_rtc_register(void)
 {
+	int err;
+
+	if (cpu_is_mx6q())
+		mxc_iomux_v3_setup_pad(MX6Q_PAD_GPIO_1__GPIO_1_1);
+	else if (cpu_is_mx6dl())
+		mxc_iomux_v3_setup_pad(MX6DL_PAD_GPIO_1__GPIO_1_1);
+
+	err = gpio_request_one(SB_FX6M_EM3027_IRQ, GPIOF_IN, "rtc irq");
+	if (err) {
+		pr_err("%s: failed requesting GPIO%d: %d\n",
+		       __func__, SB_FX6M_EM3027_IRQ, err);
+		return;
+	}
+
 	baseboard_i2c_device_register(3, &sb_fx6m_rtc_info, "em3027 rtc");
 }
 
