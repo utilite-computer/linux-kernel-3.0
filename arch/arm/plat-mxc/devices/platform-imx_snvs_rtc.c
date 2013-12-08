@@ -29,12 +29,11 @@
 	}
 
 #ifdef CONFIG_SOC_IMX6Q
-const struct imx_snvs_rtc_data imx6q_imx_snvs_rtc_data __initconst =
+const struct imx_snvs_rtc_data imx6q_imx_snvs_rtc_data =
 	imx_snvs_rtc_data_entry_single(MX6Q);
 #endif /* ifdef CONFIG_SOC_IMX6Q */
 
-struct platform_device *__init imx_add_snvs_rtc(
-		const struct imx_snvs_rtc_data *data)
+struct platform_device *imx_add_snvs_rtc(const struct imx_snvs_rtc_data *data)
 {
 	struct resource res[] = {
 		{
