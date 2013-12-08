@@ -934,6 +934,7 @@ static void sb_fx6_init(void)
 	baseboard_fb_data = sb_fx6_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6_fb_data);
 
+	imx6q_add_imx_snvs_rtc();
 	sb_fx6_gpio_ext_register();
 	sb_fx6_scf0403_lcd_init();
 	sb_fx6_himax_ts_init();
@@ -1759,7 +1760,6 @@ static void __init cm_fx6_init(void)
 
 	cm_fx6_init_ipu();
 
-	imx6q_add_imx_snvs_rtc();
 	imx6q_add_imx_snvs_pwrkey();
 	pm_power_off = mx6_snvs_poweroff;
 	imx6q_add_imx_caam();
