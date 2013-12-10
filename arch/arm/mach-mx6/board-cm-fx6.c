@@ -1861,23 +1861,25 @@ static int __init cm_fx6_init_late(void)
 }
 device_initcall_sync(cm_fx6_init_late);
 
-#define CM_FX6_MIN_SOC_VOLTAGE	1250000
-#define CM_FX6_MIN_PU_VOLTAGE	1250000
+#define CM_FX6_MX6Q_MIN_SOC_VOLTAGE	1250000
+#define CM_FX6_MX6Q_MIN_PU_VOLTAGE	1250000
 
 static void cm_fx6_adjust_cpu_op(void)
 {
 	struct cpu_op *op;
-	int num;
+	int n;
 
-	op = mx6_get_cpu_op(&num);
-	if (!op)
-		return;
+	if (cpu_is_mx6q()) {
+		op = mx6_get_cpu_op(&n);
+		if (!op)
+			return;
 
-	for (num--; num >= 0; num--) {
-		if (op[num].soc_voltage < CM_FX6_MIN_SOC_VOLTAGE)
-			op[num].soc_voltage = CM_FX6_MIN_SOC_VOLTAGE;
-		if (op[num].pu_voltage < CM_FX6_MIN_PU_VOLTAGE)
-			op[num].pu_voltage = CM_FX6_MIN_PU_VOLTAGE;
+		for (n--; n >= 0; n--) {
+			if (op[n].soc_voltage < CM_FX6_MX6Q_MIN_SOC_VOLTAGE)
+				op[n].soc_voltage = CM_FX6_MX6Q_MIN_SOC_VOLTAGE;
+			if (op[n].pu_voltage < CM_FX6_MX6Q_MIN_PU_VOLTAGE)
+				op[n].pu_voltage = CM_FX6_MX6Q_MIN_PU_VOLTAGE;
+		}
 	}
 }
 
