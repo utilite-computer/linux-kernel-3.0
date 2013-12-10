@@ -873,15 +873,15 @@ static void baseboard_sd3_init(void)
 	unsigned int sd3_full_pads_cnt	= ARRAY_SIZE(cm_fx6_q_sd3_full_200mhz);
 	unsigned int sd3_half_pads_cnt	= ARRAY_SIZE(cm_fx6_q_sd3_half_200mhz);
 
-	sd3_pads	= sd3_half_pads;
-	sd3_pads_cnt	= sd3_half_pads_cnt;
-
 	if (cpu_is_mx6dl()) {
 		sd3_full_pads		= cm_fx6_dl_sd3_full_200mhz;
 		sd3_half_pads		= cm_fx6_dl_sd3_half_200mhz;
 		sd3_full_pads_cnt	= ARRAY_SIZE(cm_fx6_dl_sd3_full_200mhz);
 		sd3_half_pads_cnt	= ARRAY_SIZE(cm_fx6_dl_sd3_half_200mhz);
 	}
+
+	sd3_pads	= sd3_half_pads;
+	sd3_pads_cnt	= sd3_half_pads_cnt;
 
 	if (baseboard_sd3_data.support_8bit) {
 		sd3_pads	= sd3_full_pads;
