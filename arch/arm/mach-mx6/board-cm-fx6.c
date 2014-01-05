@@ -1835,15 +1835,6 @@ static int __init cm_fx6_init_v4l_init(void)
 	return 0;
 }
 
-static int cm_fx6_v4l_enable;
-
-static int __init cm_fx6_v4l_setup(char *arg)
-{
-        cm_fx6_v4l_enable = 1;
-        return 0;
-}
-early_param("cm_fx6_v4l", cm_fx6_v4l_setup);
-
 static int __init cm_fx6_init_late(void)
 {
 	if (!machine_is_cm_fx6())
@@ -1853,9 +1844,7 @@ static int __init cm_fx6_init_late(void)
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
 	cm_fx6_init_hdmi_audio();
-
-	if (cm_fx6_v4l_enable)
-		cm_fx6_init_v4l_init();
+	cm_fx6_init_v4l_init();
 
 	return 0;
 }
