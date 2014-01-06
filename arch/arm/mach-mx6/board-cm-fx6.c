@@ -1817,7 +1817,7 @@ static int __init cm_fx6_init_v4l(void)
 {
 	struct platform_device *voutdev;
 	resource_size_t res_mbase;
-	resource_size_t res_msize = SZ_128M;
+	resource_size_t res_msize = SZ_64M;
 
 	if (res_msize) {
 		phys_addr_t phys = memblock_alloc_base(res_msize, SZ_4K, SZ_1G);
