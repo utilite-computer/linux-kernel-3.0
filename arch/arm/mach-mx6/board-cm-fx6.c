@@ -1813,25 +1813,34 @@ static void __init cm_fx6_init(void)
 	cm_fx6_init_audio();
 }
 
-static int __init cm_fx6_init_v4l_init(void)
+static int __init cm_fx6_init_v4l(void)
 {
 	struct platform_device *voutdev;
 	resource_size_t res_mbase;
 	resource_size_t res_msize = SZ_128M;
 
 	if (res_msize) {
-		phys_addr_t phys = memblock_alloc_base(res_msize,SZ_4K, SZ_1G);
+		phys_addr_t phys = memblock_alloc_base(res_msize, SZ_4K, SZ_1G);
+		if (!phys) {
+			pr_err("%s: memblock_alloc_base failed: %lx\n",
+				   __func__, (unsigned long) res_msize);
+			return 0;
+		}
 		memblock_remove(phys, res_msize);
 		res_mbase = phys;
 	}
 
 	voutdev = imx6q_add_v4l2_output(0);
+	if (IS_ERR(voutdev)) {
+		pr_err("%s: imx6q_add_v4l2_output failed: errno %ld\n",
+			   __func__, IS_ERR(voutdev));
+		return 0;
+	}
 	if (res_msize && voutdev) {
 		dma_declare_coherent_memory(&voutdev->dev,
 				res_mbase, res_mbase,res_msize,
 				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
 	}
-
 	return 0;
 }
 
@@ -1844,7 +1853,11 @@ static int __init cm_fx6_init_late(void)
 	cm_fx6_init_hdmi();
 	cm_fx6_init_display();
 	cm_fx6_init_hdmi_audio();
-	cm_fx6_init_v4l_init();
+	/*
+	 * This function has to be called after
+	 * all frame buffers have been registered
+	 */
+	cm_fx6_init_v4l();
 
 	return 0;
 }
