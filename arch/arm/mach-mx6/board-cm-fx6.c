@@ -1813,11 +1813,23 @@ static void __init cm_fx6_init(void)
 	cm_fx6_init_audio();
 }
 
+static resource_size_t cm_fx6_v4l_msize = SZ_64M;
+
+static int __init cm_fx6_v4l_setup(char *arg)
+{
+        cm_fx6_v4l_msize = memparse(arg, NULL);
+
+		pr_info("%s: cm_fx6_v4l_msize: %ld\n",__func__, cm_fx6_v4l_msize);
+
+        return 0;
+}
+early_param("cm_fx6_v4l_msize", cm_fx6_v4l_setup);
+
 static int __init cm_fx6_init_v4l(void)
 {
 	struct platform_device *voutdev;
 	resource_size_t res_mbase;
-	resource_size_t res_msize = SZ_64M;
+	resource_size_t res_msize = cm_fx6_v4l_msize;
 
 	if (res_msize) {
 		phys_addr_t phys = memblock_alloc_base(res_msize, SZ_4K, SZ_1G);
