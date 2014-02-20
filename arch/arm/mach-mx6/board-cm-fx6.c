@@ -518,8 +518,9 @@ static inline void cm_fx6_init_hdmi(void) {}
 
 static struct ipuv3_fb_platform_data cm_fx6_lcd_pdata = {
 	.disp_dev		= "lcd",
-	.interface_pix_fmt	= IPU_PIX_FMT_RGB666,
-	.mode_str		= "SCF04-WVGA",
+	.interface_pix_fmt	= IPU_PIX_FMT_RGB24,
+	.mode_str		= "KD050C-WVGA",
+	.default_bpp		= 24,
 	.int_clk		= false,
 };
 
@@ -573,7 +574,7 @@ static int baseboard_fb_data_size;
 static struct fsl_mxc_lcd_platform_data cm_fx6_lcdif_data = {
 	.ipu_id		= 0,
 	.disp_id	= 0,
-	.default_ifmt	= IPU_PIX_FMT_RGB666,
+	.default_ifmt	= IPU_PIX_FMT_RGB24,
 };
 
 static struct fsl_mxc_ldb_platform_data cm_fx6_ldb0_data = {
@@ -593,6 +594,18 @@ static struct fsl_mxc_ldb_platform_data cm_fx6_ldb1_data = {
 	.sec_ipu_id	= 1,
 	.sec_disp_id	= 0,
 };
+
+static int __init early_set_lcd_type(char *p)
+{
+	if (p && !strcmp(p, "dataimage")) {
+		cm_fx6_lcd_pdata.interface_pix_fmt = IPU_PIX_FMT_RGB666;
+		cm_fx6_lcd_pdata.mode_str = "SCF04-WVGA";
+		cm_fx6_lcd_pdata.default_bpp = 0;
+	}
+
+	return 0;
+}
+early_param("cm_fx6_lcd", early_set_lcd_type);
 
 static struct imx_ipuv3_platform_data ipu_data[] = {
 	{
