@@ -1843,29 +1843,41 @@ static int __init cm_fx6_init_v4l(void)
 	struct platform_device *voutdev;
 	resource_size_t res_mbase = 0;
 	resource_size_t res_msize = cm_fx6_v4l_msize;
+	phys_addr_t phys;
+	int err = 0;
 
 	if (res_msize) {
-		phys_addr_t phys = memblock_alloc_base(res_msize, SZ_4K, SZ_1G);
-		if (!phys) {
-			pr_err("%s: memblock_alloc_base failed: %lx\n",
-				   __func__, (unsigned long) res_msize);
-			return 0;
+		/* memblock_alloc_base() will not return on failure (panic). */
+		phys = memblock_alloc_base(res_msize, SZ_4K, SZ_1G);
+		err = memblock_remove(phys, res_msize);
+		if (err) {
+			pr_err("%s: memblock_remove for base=%lx, size=%lx failed: %d\n",
+			       __func__, (unsigned long) phys,
+			       (unsigned long) res_msize, err);
+			return err;
 		}
-		memblock_remove(phys, res_msize);
+
 		res_mbase = phys;
 	}
 
 	voutdev = imx6q_add_v4l2_output(0);
 	if (IS_ERR(voutdev)) {
-		pr_err("%s: imx6q_add_v4l2_output failed: errno %ld\n",
-			   __func__, IS_ERR(voutdev));
-		return 0;
+		pr_err("%s: imx6q_add_v4l2_output failed: %ld\n",
+			   __func__, PTR_ERR(voutdev));
+		return PTR_ERR(voutdev);
 	}
+
 	if (res_msize && voutdev) {
-		dma_declare_coherent_memory(&voutdev->dev,
-				res_mbase, res_mbase,res_msize,
-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+		/* dma_declare_coherent_memory returns 0 on any error */
+		err = dma_declare_coherent_memory(&voutdev->dev,
+					res_mbase, res_mbase,res_msize,
+					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+		if (err == 0) {
+			platform_device_unregister(voutdev);
+			return -ENOMEM;
+		}
 	}
+
 	return 0;
 }
 
