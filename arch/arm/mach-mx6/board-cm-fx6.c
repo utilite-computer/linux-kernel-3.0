@@ -188,11 +188,15 @@ static const struct anatop_thermal_platform_data cm_fx6_anatop_thermal_data = {
 	.name = "anatop_thermal",
 };
 
+#define CM_FX6_UART1_MODE (IMXUART_HAVE_RTSCTS|IMXUART_USE_DCEDTE|IMXUART_SDMA)
+
+static struct imxuart_platform_data cm_fx6_uart1_data;
+
 static inline void cm_fx6_init_uart(void)
 {
 	imx6q_add_imx_uart(0, NULL);
 	imx6q_add_imx_uart(3, NULL);
-	imx6q_add_imx_uart(1, NULL);
+	imx6q_add_imx_uart(1, &cm_fx6_uart1_data);
 	imx6q_add_imx_uart(4, NULL);
 }
 
@@ -683,6 +687,8 @@ static inline void cm_fx6_init_display(void) {}
 #define EEPROM_1ST_MAC_OFF		4
 #define EEPROM_BOARD_NAME_OFF		128
 #define EEPROM_BOARD_NAME_LEN		16
+#define EEPROM_BOARD_REVISION_OFF	0
+#define EEPROM_BOARD_REVISION_LEN	2
 
 static int eeprom_read(struct memory_accessor *mem_acc, unsigned char *buf,
 		       int offset, int size, const char* objname)
@@ -715,6 +721,16 @@ static void eeprom_read_board_name(struct memory_accessor *mem_acc,
 	if (eeprom_read(mem_acc, name, EEPROM_BOARD_NAME_OFF,
 			EEPROM_BOARD_NAME_LEN, objname))
 		memset(name, 0, EEPROM_BOARD_NAME_LEN);
+}
+
+static void eeprom_read_board_revision(struct memory_accessor *mem_acc,
+				   unsigned char *revision)
+{
+	char *objname = "board revision";
+
+	if (eeprom_read(mem_acc, revision, EEPROM_BOARD_REVISION_OFF,
+			EEPROM_BOARD_REVISION_LEN, objname))
+		memset(revision, 0, EEPROM_BOARD_REVISION_LEN);
 }
 
 static void cm_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
@@ -985,7 +1001,7 @@ static void sb_fx6_init(void)
 	sb_fx6_camera_init = sb_fx6_eval_camera_init;
 }
 
-static void sb_fx6m_init(void)
+static void sb_fx6m_init(unsigned char *revision)
 {
 	pr_info("CM-FX6: Detected SB-FX6m (Utilite) base board\n");
 
@@ -1004,6 +1020,12 @@ static void sb_fx6m_init(void)
 	}
 
 	sb_fx6m_rtc_register();
+
+	/* Tuning the UART1 settings with regards to the base revision */
+	if ((revision[0] + (revision[1] << 8)) > 120) {
+		pr_info("CM-FX6: UART1 Mode is [ RTSCTS.DCEDTE.SDMA ]\n");
+		cm_fx6_uart1_data.flags = CM_FX6_UART1_MODE;
+	}
 }
 
 static struct igb_platform_data baseboard_igb_pdata;
@@ -1012,10 +1034,12 @@ static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
 				   void *context)
 {
 	unsigned char baseboard[EEPROM_BOARD_NAME_LEN];
+	unsigned char revision[EEPROM_BOARD_REVISION_LEN];
 
 	eeprom_read_board_name(mem_acc, baseboard);
+	eeprom_read_board_revision(mem_acc, revision);
 	if (strncmp(baseboard, "SB-FX6m", EEPROM_BOARD_NAME_LEN) == 0)
-		sb_fx6m_init();
+		sb_fx6m_init(revision);
 	else
 		sb_fx6_init();
 
@@ -1025,6 +1049,7 @@ static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
 
 	baseboard_sd3_init();
 	imx6q_add_pcie(&baseboard_pcie_data);
+	cm_fx6_init_uart();
 }
 
 static struct at24_platform_data baseboard_eeprom_pdata = {
@@ -1869,7 +1894,6 @@ static void __init cm_fx6_init(void)
 	gp_reg_id = arm2_dvfscore_data.reg_id;
 	soc_reg_id = arm2_dvfscore_data.soc_id;
 	pu_reg_id = arm2_dvfscore_data.pu_id;
-	cm_fx6_init_uart();
 
 	cm_fx6_init_ipu();
 

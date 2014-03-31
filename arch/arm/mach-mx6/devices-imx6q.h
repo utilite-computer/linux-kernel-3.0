@@ -19,7 +19,7 @@
 #include <mach/mx6.h>
 #include <mach/devices-common.h>
 
-extern const struct imx_imx_uart_1irq_data imx6q_imx_uart_data[] __initconst;
+extern const struct imx_imx_uart_1irq_data imx6q_imx_uart_data[];
 #define imx6q_add_imx_uart(id, pdata)	\
 	imx_add_imx_uart_1irq(&imx6q_imx_uart_data[id], pdata)
 

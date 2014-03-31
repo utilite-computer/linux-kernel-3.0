@@ -140,6 +140,8 @@ static iomux_v3_cfg_t cm_fx6_q_common_pads[] = {
 	/* UART2 */
 	MX6Q_PAD_GPIO_7__UART2_TXD,
 	MX6Q_PAD_GPIO_8__UART2_RXD,
+	MX6Q_PAD_SD4_DAT5__UART2_RTS,
+	MX6Q_PAD_SD4_DAT6__UART2_CTS,
 
 	/* PWM1 */
 	MX6Q_PAD_GPIO_9__PWM1_PWMO,
