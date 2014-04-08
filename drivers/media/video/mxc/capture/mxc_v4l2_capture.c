@@ -2213,8 +2213,12 @@ static long mxc_v4l_do_ioctl(struct file *file,
 	case VIDIOC_ENUMSTD: {
 		struct v4l2_standard *e = arg;
 		pr_debug("   case VIDIOC_ENUMSTD\n");
-		*e = cam->standard;
-		break;
+		retval = -EINVAL;
+		if (e->index == 0) {
+			*e = cam->standard;
+			retval = 0;
+		}
+        break;
 	}
 
 	case VIDIOC_G_STD: {
