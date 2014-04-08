@@ -80,6 +80,7 @@
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
 #include <asm/mach/time.h>
+#include <media/tvp5150.h>
 
 #include "usb.h"
 #include "devices-imx6q.h"
@@ -928,6 +929,22 @@ static void baseboard_sd3_init(void)
 	imx6q_add_sdhci_usdhc_imx(2, &baseboard_sd3_data);
 }
 
+static struct fsl_mxc_capture_platform_data capture_data[] = {
+	{
+		.csi = 0,
+		.ipu = 0,
+		.mclk_source = 0,
+		.is_mipi = 0,
+	},
+};
+
+static void __init sb_fx6_eval_camera_init(void)
+{
+	/* Capture devices init */
+	imx6q_add_v4l2_capture(0, &capture_data[0]);
+}
+void (*sb_fx6_camera_init)(void);
+
 static void sb_fx6_init(void)
 {
 	pr_info("CM-FX6: Detected SB-FX6 (Eval) base board\n");
@@ -954,6 +971,7 @@ static void sb_fx6_init(void)
 	sb_fx6_himax_ts_init();
 	sb_fx6_himax_ts_register();
 	sb_fx6_ldb_register();
+	sb_fx6_camera_init = sb_fx6_eval_camera_init;
 }
 
 static void sb_fx6m_init(void)
@@ -993,10 +1011,51 @@ static struct at24_platform_data baseboard_eeprom_pdata = {
 	.setup		= baseboard_eeprom_setup,
 };
 
+/* For MX6Q:
+ * GPR1 bit19 and bit20 meaning:
+ * Bit19:       0 - Enable mipi to IPU1 CSI0
+ *                      virtual channel is fixed to 0
+ *              1 - Enable parallel interface to IPU1 CSI0
+ * Bit20:       0 - Enable mipi to IPU2 CSI1
+ *                      virtual channel is fixed to 3
+ *              1 - Enable parallel interface to IPU2 CSI1
+ * IPU1 CSI1 directly connect to mipi csi2,
+ *      virtual channel is fixed to 1
+ * IPU2 CSI0 directly connect to mipi csi2,
+ *      virtual channel is fixed to 2
+ *
+ * For MX6DL:
+ * GPR1 bit 21 and GPR13 bit 0-5, RM has detail information
+ */
+static void cm_fx6_csi0_init(void)
+{
+	if (cpu_is_mx6q())
+		mxc_iomux_set_gpr_register(1, 19, 1, 1);
+	else if (cpu_is_mx6dl())
+		mxc_iomux_set_gpr_register(13, 0, 3, 4);
+}
+
+static struct fsl_mxc_camera_platform_data fsl_camera_data[] = {
+	{
+		.mclk = 24000000,
+		.mclk_source = 0,
+		.csi = 0,
+		.io_init = cm_fx6_csi0_init,
+	},
+};
+
+static struct tvp5150_platform_data cm_fx6_tvp5150_pdata = {
+	.platform_data = &fsl_camera_data[0],
+};
+
 static struct i2c_board_info cm_fx6_i2c0c3_board_info[] __initdata = {
 	{
 		I2C_BOARD_INFO("at24", 0x50),
 		.platform_data = &baseboard_eeprom_pdata,
+	},
+	{
+		I2C_BOARD_INFO("tvp5150", 0x5c),
+		.platform_data = &cm_fx6_tvp5150_pdata,
 	},
 };
 
@@ -1077,6 +1136,7 @@ static void __init cm_fx6_i2c_init(void)
 	/* register the virtual bus 3 */
 	i2c_register_bus_binfo(3, NULL, cm_fx6_i2c0c3_board_info,
 			       ARRAY_SIZE(cm_fx6_i2c0c3_board_info));
+
 }
 #else /* CONFIG_I2C_IMX */
 static inline void cm_fx6_i2c_init(void) {}
@@ -1832,7 +1892,7 @@ static int __init cm_fx6_v4l_setup(char *arg)
 {
 	cm_fx6_v4l_msize = memparse(arg, NULL);
 
-	pr_info("%s: cm_fx6_v4l_msize: %u\n",__func__, cm_fx6_v4l_msize);
+	pr_info("%s: cm_fx6_v4l_msize: %u\n", __func__, cm_fx6_v4l_msize);
 
 	return 0;
 }
@@ -1870,7 +1930,7 @@ static int __init cm_fx6_init_v4l(void)
 	if (res_msize && voutdev) {
 		/* dma_declare_coherent_memory returns 0 on any error */
 		err = dma_declare_coherent_memory(&voutdev->dev,
-					res_mbase, res_mbase,res_msize,
+					res_mbase, res_mbase, res_msize,
 					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
 		if (err == 0) {
 			platform_device_unregister(voutdev);
@@ -1895,6 +1955,8 @@ static int __init cm_fx6_init_late(void)
 	 * all frame buffers have been registered
 	 */
 	cm_fx6_init_v4l();
+	if (sb_fx6_camera_init)
+		sb_fx6_camera_init();
 
 	return 0;
 }

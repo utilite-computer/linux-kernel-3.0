@@ -30,5 +30,9 @@
 #define TVP5150_NORMAL       0
 #define TVP5150_BLACK_SCREEN 1
 
-#endif
+struct tvp5150_platform_data {
+	void (*custom_setup)(struct i2c_client *);
+	void *platform_data;
+};
 
+#endif
