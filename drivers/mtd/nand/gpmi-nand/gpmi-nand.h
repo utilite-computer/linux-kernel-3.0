@@ -120,8 +120,6 @@ struct nand_timing {
 	int8_t  tRHOH_in_ns;
 };
 
-#define ASYNC_EDO_ENABLED		1
-#define ASYNC_EDO_TIMING_CONFIGED	2
 struct gpmi_nand_data {
 	/* System Interface */
 	struct device		*dev;
@@ -183,8 +181,6 @@ struct gpmi_nand_data {
 
 	/* private */
 	void			*private;
-	int flags;
-	int timing_mode;
 };
 
 /**
