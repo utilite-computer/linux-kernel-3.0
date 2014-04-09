@@ -35,6 +35,73 @@ static int debug;
 module_param(debug, int, 0);
 MODULE_PARM_DESC(debug, "Debug level (0-2)");
 
+/* enum tvp515x_std - enum for supported standards */
+enum tvp515x_std {
+	STD_PAL_BDGHIN = 0,
+	STD_NTSC_MJ,
+	STD_INVALID
+};
+
+/*!
+ * struct tvp515x_std_info - Structure to store standard informations
+ * @width: Line width in pixels
+ * @height:Number of active lines
+ * @video_std: Value to write in REG_VIDEO_STD register
+ * @standard: v4l2 standard structure information
+ */
+struct tvp515x_std_info {
+	u8 video_std;
+	struct v4l2_standard standard;
+	struct v4l2_pix_format pix;
+	/* struct v4l2_mbus_framefmt format;*/
+};
+
+/*!
+ * Supported standards -
+ *
+ * Currently supports two standards only, need to add support for rest of the
+ * modes, like SECAM, etc...
+ */
+static struct tvp515x_std_info tvp515x_std_list[] = {
+	/* Standard: STD_NTSC_MJ */
+	/* Standard: STD_PAL_BDGHIN */
+	[STD_PAL_BDGHIN] = {
+		.video_std = VIDEO_STD_PAL_BDGHIN_BIT,
+		.standard = {
+			.index = 1,
+			.id = V4L2_STD_PAL,
+			.name = "PAL",
+			.frameperiod = {1, 25},
+			.framelines = 625
+		},
+		.pix = {
+			.width = PAL_NUM_ACTIVE_PIXELS,
+			.height = PAL_NUM_ACTIVE_LINES,
+			.pixelformat = V4L2_PIX_FMT_UYVY,
+			.field = V4L2_FIELD_INTERLACED,
+			.colorspace = V4L2_COLORSPACE_SMPTE170M,
+		},
+	},
+	[STD_NTSC_MJ] = {
+		.video_std = VIDEO_STD_NTSC_MJ_BIT,
+		.standard = {
+			.index = 0,
+			.id = V4L2_STD_NTSC,
+			.name = "NTSC",
+			.frameperiod = {1001, 30000},
+			.framelines = 525
+		},
+		.pix = {
+			.width = NTSC_NUM_ACTIVE_PIXELS,
+			.height = NTSC_NUM_ACTIVE_LINES,
+			.pixelformat = V4L2_PIX_FMT_UYVY,
+			.field = V4L2_FIELD_INTERLACED,
+			.colorspace = V4L2_COLORSPACE_SMPTE170M,
+		},
+	},
+	/* Standard: need to add for additional standard */
+};
+
 struct tvp5150 {
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
@@ -1103,6 +1170,41 @@ static int tvp5150_reset_init(struct v4l2_int_device *s, u32 val)
 	return 0;
 };
 
+/**
+ * tvp515x_query_current_std() : Query the current standard detected by TVP5151
+ * @sd: ptr to v4l2_subdev struct
+ *
+ * Returns the current standard detected by TVP5151, STD_INVALID if there is no
+ * standard detected.
+ */
+static int tvp515x_query_current_std(struct v4l2_int_device *s)
+{
+	u8 std, std_status;
+
+	std = tvp5150_read1(s, TVP5150_VIDEO_STD);
+	if ((std & VIDEO_STD_MASK) == VIDEO_STD_AUTO_SWITCH_BIT)
+		/* use the standard status register */
+		std_status = tvp5150_read1(s, TVP5150_STATUS_REG_5);
+	else
+		/* use the standard register itself */
+		std_status = std;
+
+	switch (std_status & VIDEO_STD_MASK) {
+	case VIDEO_STD_NTSC_MJ_BIT:
+	case VIDEO_STD_NTSC_MJ_BIT_AS:
+		return STD_NTSC_MJ;
+
+	case VIDEO_STD_PAL_BDGHIN_BIT:
+	case VIDEO_STD_PAL_BDGHIN_BIT_AS:
+		return STD_PAL_BDGHIN;
+
+	default:
+		return STD_INVALID;
+	}
+
+	return STD_INVALID;
+}
+
 static int ioctl_dev_init(struct v4l2_int_device *s)
 {
 	tvp5150_reset_init(s, 0);
@@ -1186,7 +1288,14 @@ static int ioctl_enum_fmt_cap(struct v4l2_int_device *s,
  */
 static int ioctl_g_fmt_cap(struct v4l2_int_device *s, struct v4l2_format *f)
 {
-	pr_debug("%s\n",__func__);
+	struct sensor *sensor = s->priv;
+	/* query the current standard */
+	int current_std = tvp515x_query_current_std(s);
+	if (current_std != STD_INVALID)
+		sensor->pix = tvp515x_std_list[current_std].pix;
+
+	/* Update the defaults */
+	tvp5150_data.pix = sensor->pix;
 	f->fmt.pix = tvp5150_data.pix;
 	return 0;
 }

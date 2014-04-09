@@ -30,6 +30,12 @@
 #define TVP5150_NORMAL       0
 #define TVP5150_BLACK_SCREEN 1
 
+/* Number of pixels and number of lines per frame for different standards */
+#define NTSC_NUM_ACTIVE_PIXELS	(720)
+#define NTSC_NUM_ACTIVE_LINES	(525)
+#define PAL_NUM_ACTIVE_PIXELS	(720)
+#define PAL_NUM_ACTIVE_LINES	(576)
+
 struct tvp5150_platform_data {
 	void (*custom_setup)(struct i2c_client *);
 	void *platform_data;
