@@ -991,6 +991,10 @@ static void sb_fx6m_init(void)
 	baseboard_fb_data = sb_fx6m_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
 
+	/*for Utilite only HDMI to IPU1 */
+	if (cpu_is_mx6q())
+		cm_fx6_hdmi_core_data.ipu_id = 1;
+
 	sb_fx6m_rtc_register();
 }
 
