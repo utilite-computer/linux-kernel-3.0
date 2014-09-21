@@ -1275,12 +1275,12 @@ static struct clk *sata_clk;
 
 static struct gpio sata_issd_gpios[] = {
 	/* The order of the GPIOs in the array is important! */
+	{ CM_FX6_SATA_LDO_EN,	 GPIOF_OUT_INIT_LOW,	"sata ldo en" },
 	{ CM_FX6_SATA_PHY_SLP,	 GPIOF_OUT_INIT_LOW,	"sata phy slp" },
 	{ CM_FX6_SATA_nRSTDLY,	 GPIOF_OUT_INIT_LOW,	"sata nrst" },
 	{ CM_FX6_SATA_PWREN,	 GPIOF_OUT_INIT_LOW,	"sata pwren" },
 	{ CM_FX6_SATA_nSTANDBY1, GPIOF_OUT_INIT_LOW,	"sata nstndby1" },
 	{ CM_FX6_SATA_nSTANDBY2, GPIOF_OUT_INIT_LOW,	"sata nstndby2" },
-	{ CM_FX6_SATA_LDO_EN,	 GPIOF_OUT_INIT_LOW,	"sata ldo en" },
 };
 
 static void cm_fx6_sata_power_on(bool on)
