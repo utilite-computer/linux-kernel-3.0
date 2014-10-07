@@ -1413,7 +1413,7 @@ static void cm_fx6_sata_power_on(bool on)
 }
 
 /* HW Initialization, if return 0, initialization is successful. */
-static int cm_fx6_sata_init(struct device *dev, void __iomem *addr)
+static int __cm_fx6_sata_init(struct device *dev, void __iomem *addr)
 {
 	u32 tmpdata;
 	int err;
@@ -1485,6 +1485,30 @@ put_sata_clk:
 free_gpios:
 	cm_fx6_sata_power_on(false);
 	gpio_free_array(sata_issd_gpios, ARRAY_SIZE(sata_issd_gpios));
+
+	return err;
+}
+
+#define CM_FX6_SATA_INIT_RETRIES 10
+static int cm_fx6_sata_init(struct device *dev, void __iomem *addr)
+{
+	int i, err;
+	u32 tmpdata;
+
+	for (i = 0; i < CM_FX6_SATA_INIT_RETRIES; i++) {
+		err = __cm_fx6_sata_init(dev, addr);
+
+		if (!err)
+			break;
+
+		tmpdata = readl(addr + PORT_SATA_SR);
+		if ((tmpdata & 0xF) == 0)
+			break;
+
+		dev_info(dev, "cm_fx6_sata_init [%d/%d] sata_sr: [ 0x%x ]\n",
+			 i + 1, CM_FX6_SATA_INIT_RETRIES, (tmpdata & 0xF));
+
+	}
 
 	return err;
 }
