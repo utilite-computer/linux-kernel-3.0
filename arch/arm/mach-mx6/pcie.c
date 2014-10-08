@@ -771,14 +771,7 @@ static void imx_pcie_enable_controller(struct device *dev)
 	struct clk *pcie_clk;
 	struct imx_pcie_platform_data *pdata = dev->platform_data;
 
-	/* Enable PCIE power */
-	gpio_request(pdata->pcie_pwr_en, "PCIE POWER_EN");
-
-	/* activate PCIE_PWR_EN */
-	gpio_direction_output(pdata->pcie_pwr_en, 1);
-
 	imx_pcie_clrset(IOMUXC_GPR1_TEST_POWERDOWN, 0 << 18, IOMUXC_GPR1);
-
 
 	/* enable the clks */
 	if (pdata->type_ep) {
@@ -801,23 +794,6 @@ static void imx_pcie_enable_controller(struct device *dev)
 		}
 	}
 	imx_pcie_clrset(IOMUXC_GPR1_PCIE_REF_CLK_EN, 1 << 16, IOMUXC_GPR1);
-}
-
-static void card_reset(struct device *dev)
-{
-	struct imx_pcie_platform_data *pdata = dev->platform_data;
-
-	/* PCIE RESET */
-	gpio_request(pdata->pcie_rst, "PCIE RESET");
-
-	/* activate PERST_B */
-	gpio_direction_output(pdata->pcie_rst, 0);
-
-	/* Add one reset to the pcie external device */
-	msleep(100);
-
-	/* deactive PERST_B */
-	gpio_direction_output(pdata->pcie_rst, 1);
 }
 
 static void __init add_pcie_port(void __iomem *base, void __iomem *dbi_base,
@@ -1016,13 +992,40 @@ static int __devinit imx_pcie_pltfm_probe(struct platform_device *pdev)
 	imx_pcie_clrset(IOMUXC_GPR8_TX_SWING_FULL, 127 << 18, IOMUXC_GPR8);
 	imx_pcie_clrset(IOMUXC_GPR8_TX_SWING_LOW, 127 << 25, IOMUXC_GPR8);
 
-	/* Enable the pwr, clks and so on */
-	imx_pcie_enable_controller(dev);
-	if (!(pdata->type_ep)) {
-		/*Only RC: togle the external card's reset */
-		card_reset(dev) ;
+	/* PCIE RESET */
+	gpio_request(pdata->pcie_rst, "PCIE RESET");
+	/* PCIE power */
+	gpio_request(pdata->pcie_pwr_en, "PCIE POWER_EN");
 
+	/* Power off */
+	gpio_direction_output(pdata->pcie_pwr_en, 1);
+	/* Reset */
+	if (!(pdata->type_ep)) {
+		/*Only RC: reset the external card */
+		gpio_direction_output(pdata->pcie_rst, 0);
+		msleep(500);
+	}
+	msleep(500);
+
+	/* Init point */
+
+	/* Enable PCIE power */
+	gpio_direction_output(pdata->pcie_pwr_en, 0);
+
+	msleep(500);
+
+	/* Enable the clks and so on */
+	imx_pcie_enable_controller(dev);
+
+	msleep(500);
+
+	/* Unreset */
+	if (!(pdata->type_ep)) {
+		/*Only RC: unreset the external card's reset */
+		gpio_direction_output(pdata->pcie_rst, 1);
+		usleep_range(3000, 4000);
 		imx_pcie_regions_setup(dev, dbi_base);
+		usleep_range(3000, 4000);
 	}
 
 	pr_info("PCIE: %s start link up.\n", __func__);
