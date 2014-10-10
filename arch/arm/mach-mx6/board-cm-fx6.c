@@ -123,6 +123,7 @@
 #define SB_FX6M_EM3027_IRQ		IMX_GPIO_NR(1, 1)
 #define SB_FX6M_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
 #define SB_FX6M_DVI_HPD			IMX_GPIO_NR(1, 4)
+#define SB_FX6M_PWR_LAN_EN		IMX_GPIO_NR(2, 24)
 
 static u32 board_rev;
 
@@ -991,9 +992,16 @@ static void sb_fx6m_init(void)
 	baseboard_fb_data = sb_fx6m_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
 
-	/*for Utilite only HDMI to IPU1 */
-	if (cpu_is_mx6q())
+	baseboard_pcie_data.pcie_pwr_en = SB_FX6M_PWR_LAN_EN;
+
+	if (cpu_is_mx6q()) {
+		/* for Utilite only: HDMI to IPU1 */
 		cm_fx6_hdmi_core_data.ipu_id = 1;
+		/* SB_FX6M_PWR_LAN_EN */
+		mxc_iomux_v3_setup_pad(MX6Q_PAD_EIM_CS1__GPIO_2_24);
+	} else if (cpu_is_mx6dl()) {
+		mxc_iomux_v3_setup_pad(MX6DL_PAD_EIM_CS1__GPIO_2_24);
+	}
 
 	sb_fx6m_rtc_register();
 }
