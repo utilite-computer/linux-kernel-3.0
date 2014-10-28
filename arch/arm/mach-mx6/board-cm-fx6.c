@@ -126,6 +126,7 @@
 #define SB_FX6M_PWR_LAN_EN		IMX_GPIO_NR(2, 24)
 
 static u32 board_rev;
+static u32 baseboard_rev;
 
 extern char *soc_reg_id;
 extern char *pu_reg_id;
@@ -724,13 +725,19 @@ static void eeprom_read_board_name(struct memory_accessor *mem_acc,
 }
 
 static void eeprom_read_board_revision(struct memory_accessor *mem_acc,
-				   unsigned char *revision)
+				       u32 *board_rev)
 {
 	char *objname = "board revision";
+	unsigned char revision[EEPROM_BOARD_REVISION_LEN];
+	int i;
 
 	if (eeprom_read(mem_acc, revision, EEPROM_BOARD_REVISION_OFF,
 			EEPROM_BOARD_REVISION_LEN, objname))
 		memset(revision, 0, EEPROM_BOARD_REVISION_LEN);
+
+	*board_rev = 0;
+	for (i = 0; i < EEPROM_BOARD_REVISION_LEN; i++)
+		*board_rev += revision[i] << (8 * i);
 }
 
 static void cm_fx6_eeprom_setup(struct memory_accessor *mem_acc, void *context)
@@ -1001,7 +1008,7 @@ static void sb_fx6_init(void)
 	sb_fx6_camera_init = sb_fx6_eval_camera_init;
 }
 
-static void sb_fx6m_init(unsigned char *revision)
+static void sb_fx6m_init(void)
 {
 	pr_info("CM-FX6: Detected SB-FX6m (Utilite) base board\n");
 
@@ -1022,7 +1029,7 @@ static void sb_fx6m_init(unsigned char *revision)
 	sb_fx6m_rtc_register();
 
 	/* Tuning the UART1 settings with regards to the base revision */
-	if ((revision[0] + (revision[1] << 8)) > 120) {
+	if (baseboard_rev > 120) {
 		pr_info("CM-FX6: UART1 Mode is [ RTSCTS.DCEDTE.SDMA ]\n");
 		cm_fx6_uart1_data.flags = CM_FX6_UART1_MODE;
 	}
@@ -1034,12 +1041,12 @@ static void baseboard_eeprom_setup(struct memory_accessor *mem_acc,
 				   void *context)
 {
 	unsigned char baseboard[EEPROM_BOARD_NAME_LEN];
-	unsigned char revision[EEPROM_BOARD_REVISION_LEN];
 
 	eeprom_read_board_name(mem_acc, baseboard);
-	eeprom_read_board_revision(mem_acc, revision);
+	eeprom_read_board_revision(mem_acc, &baseboard_rev);
+
 	if (strncmp(baseboard, "SB-FX6m", EEPROM_BOARD_NAME_LEN) == 0)
-		sb_fx6m_init(revision);
+		sb_fx6m_init();
 	else
 		sb_fx6_init();
 
