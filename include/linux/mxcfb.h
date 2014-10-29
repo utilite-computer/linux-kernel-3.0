@@ -32,6 +32,10 @@
 #define FB_ACCEL_TRIPLE_FLAG	0x00000000
 #define FB_ACCEL_DOUBLE_FLAG	0x00000001
 
+#define FB_MXC_SYNC_MASK	(FB_SYNC_OE_LOW_ACT | FB_SYNC_CLK_LAT_FALL | \
+				 FB_SYNC_DATA_INVERT | FB_SYNC_CLK_IDLE_EN | \
+				 FB_SYNC_SHARP_MODE | FB_SYNC_SWAP_RGB)
+
 struct mxcfb_gbl_alpha {
 	int enable;
 	int alpha;
