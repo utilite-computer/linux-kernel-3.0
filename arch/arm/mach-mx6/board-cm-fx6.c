@@ -73,6 +73,7 @@
 #include <mach/esdhc.h>
 #include <mach/iomux-mx6q.h>
 #include <mach/iomux-mx6dl.h>
+#include <mach/mipi_dsi.h>
 
 #include <asm/irq.h>
 #include <asm/setup.h>
@@ -119,6 +120,7 @@
 #define SB_FX6_GPIO_EXT_BASE		IMX_GPIO_NR(8, 0)
 #define SB_FX6_PCIE_MUX_PWR		IMX_GPIO_NR(8, 4)
 #define SB_FX6_LCD_RST			IMX_GPIO_NR(8, 11)
+#define SB_FX6_MIPI_MODE		IMX_GPIO_NR(8, 12)
 
 #define SB_FX6M_EM3027_IRQ		IMX_GPIO_NR(1, 1)
 #define SB_FX6M_DVI_DDC_SEL		IMX_GPIO_NR(1, 2)
@@ -612,12 +614,48 @@ static struct fsl_mxc_ldb_platform_data cm_fx6_ldb1_data = {
 	.sec_disp_id	= 0,
 };
 
+static struct gpio cm_fx6_mipi_dsi_gpios[] = {
+	{ SB_FX6_LCD_RST, GPIOF_OUT_INIT_HIGH, "dsi reset" },
+	{ SB_FX6_MIPI_MODE, GPIOF_OUT_INIT_HIGH, "dsi mode" },
+};
+
+static void sb_fx6_mipi_dsi_reset(void)
+{
+	int err = gpio_request_array(cm_fx6_mipi_dsi_gpios,
+				ARRAY_SIZE(cm_fx6_mipi_dsi_gpios));
+
+	if (err) {
+		pr_err("CM-FX6: failed to request dsi-gpios: %d\n", err);
+	} else {
+		udelay(10);
+		gpio_set_value_cansleep(SB_FX6_LCD_RST, 0);
+		udelay(50);
+		gpio_set_value_cansleep(SB_FX6_LCD_RST, 1);
+		msleep(120);
+	}
+}
+
+static struct mipi_dsi_platform_data cm_fx6_mipi_dsi_data = {
+	.ipu_id		= 0,
+	.disp_id	= 0,
+	.lcd_panel	= "TRULY-WVGA",
+	.reset		= sb_fx6_mipi_dsi_reset,
+};
+
 static int __init early_set_lcd_type(char *p)
 {
-	if (p && !strcmp(p, "dataimage")) {
+	if (!p)
+		return 0;
+
+	if (!strcmp(p, "dataimage")) {
 		cm_fx6_lcd_pdata.interface_pix_fmt = IPU_PIX_FMT_RGB666;
 		cm_fx6_lcd_pdata.mode_str = "SCF04-WVGA";
 		cm_fx6_lcd_pdata.default_bpp = 0;
+	} else if (!strcmp(p, "truly")) {
+		strcpy(&cm_fx6_lcd_pdata.disp_dev[0], "mipi_dsi");
+		cm_fx6_lcd_pdata.interface_pix_fmt = IPU_PIX_FMT_RGB24;
+		cm_fx6_lcd_pdata.mode_str = "TRULY-WVGA";
+		cm_fx6_lcd_pdata.default_bpp = 32;
 	}
 
 	return 0;
@@ -902,6 +940,16 @@ static void sb_fx6_ldb_register(void)
 			__func__, PTR_ERR(pdev));
 }
 
+static void sb_fx6_mipi_dsi_register(void)
+{
+	struct platform_device * pdev;
+
+	pdev = imx6q_add_mipi_dsi(&cm_fx6_mipi_dsi_data);
+	if (IS_ERR(pdev))
+		pr_err("%s: mipi_dsi interface register failed: %ld\n",
+			__func__, PTR_ERR(pdev));
+}
+
 #if defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE)
 static struct pca953x_platform_data sb_fx6_gpio_ext_pdata = {
 	.gpio_base = SB_FX6_GPIO_EXT_BASE,
@@ -1001,7 +1049,10 @@ static void sb_fx6_init(void)
 
 	imx6q_add_imx_snvs_rtc();
 	sb_fx6_gpio_ext_register();
-	sb_fx6_scf0403_lcd_init();
+	if (!strcmp(cm_fx6_lcd_pdata.mode_str, "SCF04-WVGA"))
+		sb_fx6_scf0403_lcd_init();
+	else if (!strcmp(cm_fx6_lcd_pdata.mode_str, "TRULY-WVGA"))
+		sb_fx6_mipi_dsi_register();
 	sb_fx6_himax_ts_init();
 	sb_fx6_himax_ts_register();
 	sb_fx6_ldb_register();
