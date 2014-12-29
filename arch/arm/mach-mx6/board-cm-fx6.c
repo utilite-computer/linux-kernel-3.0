@@ -1079,10 +1079,15 @@ static void sb_fx6m_init(void)
 
 	sb_fx6m_rtc_register();
 
-	/* Tuning the UART1 settings with regards to the base revision */
 	if (baseboard_rev > 120) {
+		/* Tuning UART1 settings with regard to the base revision */
 		pr_info("CM-FX6: UART1 Mode is [ RTSCTS.DCEDTE.SDMA ]\n");
 		cm_fx6_uart1_data.flags = CM_FX6_UART1_MODE;
+
+		/* sb-fx6m has SD3 CD starting from revsion 1.3 */
+		baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
+		baseboard_sd3_data.cd_gpio = SB_FX6_SD3_CD;
+		baseboard_sd3_data.always_present = 0;
 	}
 }
 
