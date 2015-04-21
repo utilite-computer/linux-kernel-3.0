@@ -845,8 +845,9 @@ static void __init add_pcie_port(void __iomem *base, void __iomem *dbi_base,
 		imx_pcie_clrset(IOMUXC_GPR1_PCIE_REF_CLK_EN, 0 << 16,
 				IOMUXC_GPR1);
 
-		/* activate PCIE_PWR_EN */
-		gpio_direction_output(pdata->pcie_pwr_en, 0);
+		/* deactivate PCIE_PWR_EN */
+		gpio_direction_output(pdata->pcie_pwr_en,
+				      !pdata->pcie_pwr_en_is_active_high);
 
 		imx_pcie_clrset(IOMUXC_GPR1_TEST_POWERDOWN, 1 << 18,
 				IOMUXC_GPR1);
@@ -1035,7 +1036,8 @@ static int __devinit imx_pcie_pltfm_probe(struct platform_device *pdev)
 	gpio_request(pdata->pcie_pwr_en, "PCIE POWER_EN");
 
 	/* Power off */
-	gpio_direction_output(pdata->pcie_pwr_en, 1);
+	gpio_direction_output(pdata->pcie_pwr_en,
+			      !pdata->pcie_pwr_en_is_active_high);
 	/* Reset */
 	if (!(pdata->type_ep)) {
 		/*Only RC: reset the external card */
@@ -1047,7 +1049,8 @@ static int __devinit imx_pcie_pltfm_probe(struct platform_device *pdev)
 	/* Init point */
 
 	/* Enable PCIE power */
-	gpio_direction_output(pdata->pcie_pwr_en, 0);
+	gpio_direction_output(pdata->pcie_pwr_en,
+			      pdata->pcie_pwr_en_is_active_high);
 
 	msleep(500);
 

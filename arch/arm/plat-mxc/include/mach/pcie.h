@@ -32,6 +32,7 @@
 
 struct imx_pcie_platform_data {
 	unsigned int pcie_pwr_en;
+	bool pcie_pwr_en_is_active_high;
 	unsigned int pcie_rst;
 	unsigned int pcie_wake_up;
 	unsigned int pcie_dis;

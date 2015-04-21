@@ -1044,6 +1044,7 @@ static void sb_fx6_init(void)
 	baseboard_dvi_info.irq = 0;
 
 	baseboard_pcie_data.pcie_pwr_en = SB_FX6_PCIE_MUX_PWR;
+	baseboard_pcie_data.pcie_pwr_en_is_active_high = true;
 
 	baseboard_fb_data = sb_fx6_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6_fb_data);
@@ -1069,6 +1070,7 @@ static void sb_fx6m_init(void)
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
 
 	baseboard_pcie_data.pcie_pwr_en = SB_FX6M_PWR_LAN_EN;
+	baseboard_pcie_data.pcie_pwr_en_is_active_high = false;
 
 	if (cpu_is_mx6q()) {
 		/* for Utilite only: HDMI to IPU1 */
