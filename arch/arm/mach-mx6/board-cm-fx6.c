@@ -127,6 +127,9 @@
 #define SB_FX6M_DVI_HPD			IMX_GPIO_NR(1, 4)
 #define SB_FX6M_PWR_LAN_EN		IMX_GPIO_NR(2, 24)
 
+#define IOMUXC_UART2_UART_RTS_B_SELECT_INPUT_OFFSET	0x924
+#define SD4_DATA5_ALT2	0x4
+
 static u32 board_rev;
 static u32 baseboard_rev;
 
@@ -191,7 +194,7 @@ static const struct anatop_thermal_platform_data cm_fx6_anatop_thermal_data = {
 	.name = "anatop_thermal",
 };
 
-#define CM_FX6_UART1_MODE (IMXUART_HAVE_RTSCTS|IMXUART_USE_DCEDTE|IMXUART_SDMA)
+#define CM_FX6_UART1_MODE (IMXUART_HAVE_RTSCTS)
 
 static struct imxuart_platform_data cm_fx6_uart1_data;
 
@@ -1085,8 +1088,17 @@ static void sb_fx6m_init(void)
 
 	if (baseboard_rev > 120) {
 		/* Tuning UART1 settings with regard to the base revision */
-		pr_info("CM-FX6: UART1 Mode is [ RTSCTS.DCEDTE.SDMA ]\n");
+		pr_info("CM-FX6: UART1 Mode is [ RTSCTS ]\n");
 		cm_fx6_uart1_data.flags = CM_FX6_UART1_MODE;
+		/*
+		 * Connect RTS_B pad to ipp_uart_rts_b when UART is in DCE mode.
+		 * IOMUXC_UART2_UART_RTS_B_SELECT_INPUT[2-0]=100b
+		 * 100b SD4_DATA5_ALT2 - Selecting ALT2 mode of pad SD4_DAT5
+		 * for UART2_RTS_B
+		 */
+		mxc_iomux_set_specialbits_register(
+			IOMUXC_UART2_UART_RTS_B_SELECT_INPUT_OFFSET,
+			SD4_DATA5_ALT2, 0x7);
 
 		/* sb-fx6m has SD3 CD starting from revsion 1.3 */
 		baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
