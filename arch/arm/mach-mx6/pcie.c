@@ -845,9 +845,6 @@ static void __init add_pcie_port(void __iomem *base, void __iomem *dbi_base,
 		imx_pcie_clrset(IOMUXC_GPR1_PCIE_REF_CLK_EN, 0 << 16,
 				IOMUXC_GPR1);
 
-		/* Disable PCIE power */
-		gpio_request(pdata->pcie_pwr_en, "PCIE POWER_EN");
-
 		/* activate PCIE_PWR_EN */
 		gpio_direction_output(pdata->pcie_pwr_en, 0);
 
