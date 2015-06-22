@@ -1029,7 +1029,8 @@ void (*sb_fx6_camera_init)(void);
 
 static void sb_fx6_init(void)
 {
-	pr_info("CM-FX6: Detected SB-FX6 (Eval) base board\n");
+	pr_info("CM-FX6: Detected SB-FX6 (Eval) base board revision: %u\n",
+		baseboard_rev);
 
 	baseboard_sd3_data.cd_type = ESDHC_CD_GPIO;
 	baseboard_sd3_data.cd_gpio = SB_FX6_SD3_CD;
@@ -1061,7 +1062,8 @@ static void sb_fx6_init(void)
 
 static void sb_fx6m_init(void)
 {
-	pr_info("CM-FX6: Detected SB-FX6m (Utilite) base board\n");
+	pr_info("CM-FX6: Detected SB-FX6m (Utilite) base board revision: %u\n",
+		baseboard_rev);
 
 	baseboard_fb_data = sb_fx6m_fb_data;
 	baseboard_fb_data_size = ARRAY_SIZE(sb_fx6m_fb_data);
